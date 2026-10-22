@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Production output
+dist/
+
+# Test coverage
+coverage/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+*.log
+.vite/
