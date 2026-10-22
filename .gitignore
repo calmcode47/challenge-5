@@ -17,3 +17,9 @@ coverage/
 Thumbs.db
 *.log
 .vite/
+
+# Local packs and drop folders
+files/
+files /
+files*/
+
