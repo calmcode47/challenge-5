@@ -3,4 +3,8 @@ export * from "./contracts/index.js";
 export * from "./domain/budget/index.js";
 export * from "./domain/timeline/index.js";
 export * from "./domain/checklist/index.js";
+export * from "./domain/ideas/index.js";
+export * from "./domain/enrichment/index.js";
+export * from "./domain/plan/index.js";
+export * from "./domain/exports/index.js";
 export * from "./i18n/index.js";

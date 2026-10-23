@@ -55,7 +55,7 @@ export function toIsoDate(date: Date): string {
  */
 function normalizeToUtcMidnight(val: string | Date): Date {
   if (typeof val === "string") {
-    return parseIsoDate(val);
+    return parseIsoDate(val.trim().slice(0, 10));
   }
   return new Date(Date.UTC(val.getUTCFullYear(), val.getUTCMonth(), val.getUTCDate(), 0, 0, 0, 0));
 }
