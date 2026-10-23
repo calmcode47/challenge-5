@@ -1,30 +1,23 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import path from "node:path";
 
 /**
- * Vite configuration for Occasio frontend.
- * Configures React, Tailwind CSS v4, manualChunk isolation for Three.js, and ES2022 target.
+ * Vite configuration for Occasio Soft Clay Celebrations frontend.
+ * Configures React, Tailwind CSS v4, and ES2022 target.
  */
 export default defineConfig({
   plugins: [tailwindcss(), react()],
-  resolve: {
-    alias: {
-      "@occasio/shared": path.resolve(__dirname, "../shared/src/index.ts"),
+  server: {
+    proxy: {
+      "/api/v1": {
+        target: "http://127.0.0.1:8787",
+        changeOrigin: true,
+      },
     },
   },
   build: {
     target: "es2022",
     sourcemap: false,
-    rollupOptions: {
-      output: {
-        manualChunks(id: string) {
-          if (id.includes("three") || id.includes("@react-three")) {
-            return "vendor-three";
-          }
-        },
-      },
-    },
   },
 });

@@ -1,55 +1,107 @@
-import { lazy, Suspense, type ReactNode } from "react";
-import { createBrowserRouter, type RouteObject } from "react-router";
-import { AppShell } from "../components/layout/AppShell";
-import { Skeleton } from "../components/ui/Skeleton";
-import { RouteAnnouncer } from "./RouteAnnouncer";
+import { lazy, Suspense, type ReactElement } from "react";
+import { createBrowserRouter } from "react-router";
 
-const LandingPage = lazy(() => import("../features/landing/LandingPage"));
-const WizardPage = lazy(() => import("../features/wizard/WizardPage"));
-const PlansPage = lazy(() => import("../features/plans/PlansPage"));
-const WorkspacePage = lazy(() => import("../features/workspace/WorkspacePage"));
-const PrivacyPage = lazy(() => import("../features/settings/PrivacyPage"));
-const MyDataPage = lazy(() => import("../features/settings/MyDataPage"));
-const NotFoundPage = lazy(() => import("../features/not-found/NotFoundPage"));
+const HomePage = lazy(() => import("../features/home/HomePage.js"));
+const WizardPage = lazy(() => import("../features/wizard/WizardPage.js"));
+const WorkspacePage = lazy(() => import("../features/workspace/WorkspacePage.js"));
+const VaultPage = lazy(() => import("../features/vault/VaultPage.js"));
+const NotFoundPage = lazy(() => import("../features/not-found/NotFoundPage.js"));
 
-function RouteSuspenseFallback(): JSX.Element {
+/**
+ * Visual loading skeleton shown while lazy-loaded route views stream into memory.
+ */
+export function LoadingFallback(): ReactElement {
   return (
-    <div className="py-8 space-y-4 w-full" aria-busy="true">
-      <Skeleton className="h-10 w-2/3 max-w-md" />
-      <Skeleton className="h-5 w-full max-w-lg" />
-      <Skeleton className="h-48 w-full mt-6" />
+    <div className="min-h-screen bg-surface flex flex-col items-center justify-center text-wine-deep">
+      <span className="material-symbols-outlined text-4xl animate-spin text-wine-accent">
+        progress_activity
+      </span>
+      <span className="font-label-md text-label-md mt-3 tracking-wider uppercase font-bold text-secondary">
+        Opening Studio Atelier...
+      </span>
     </div>
   );
 }
 
-function withSuspense(component: ReactNode): JSX.Element {
-  return <Suspense fallback={<RouteSuspenseFallback />}>{component}</Suspense>;
-}
-
 /**
- * Route objects configuration for Occasio application layout and pages.
+ * Studio route tree configuration mapping application paths to lazy components.
  */
-export const routes: RouteObject[] = [
+export const routes = [
   {
+    path: "/",
     element: (
-      <>
-        <RouteAnnouncer />
-        <AppShell />
-      </>
+      <Suspense fallback={<LoadingFallback />}>
+        <HomePage />
+      </Suspense>
     ),
-    children: [
-      { path: "/", element: withSuspense(<LandingPage />) },
-      { path: "/plan/new", element: withSuspense(<WizardPage />) },
-      { path: "/plans", element: withSuspense(<PlansPage />) },
-      { path: "/plan/:planId", element: withSuspense(<WorkspacePage />) },
-      { path: "/privacy", element: withSuspense(<PrivacyPage />) },
-      { path: "/my-data", element: withSuspense(<MyDataPage />) },
-      { path: "*", element: withSuspense(<NotFoundPage />) },
-    ],
+  },
+  {
+    path: "/studio-home",
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <HomePage />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/plan-wizard",
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <WizardPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/wizard",
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <WizardPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/event-workspace",
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <WorkspacePage />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/workspace",
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <WorkspacePage />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/my-plans-vault",
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <VaultPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/plans",
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <VaultPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: "*",
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <NotFoundPage />
+      </Suspense>
+    ),
   },
 ];
 
 /**
- * Declarative application router matching M03 layout with lazy-loaded route splits.
+ * Main application router defining routes for Studio Home, Wizard, Workspace, and Vault.
  */
-export const router: ReturnType<typeof createBrowserRouter> = createBrowserRouter(routes);
+export const router = createBrowserRouter(routes);

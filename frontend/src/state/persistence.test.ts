@@ -1,143 +1,141 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { z } from "zod";
+import { describe, it, expect, beforeEach } from "vitest";
 import {
-  clearAllOccasioKeys,
-  quarantine,
-  readJson,
-  removeStorageKey,
-  writeJson,
-} from "./persistence";
+  loadPlans,
+  savePlan,
+  getPlanById,
+  resetVault,
+  exportVaultJson,
+  importVaultJson,
+  removePlan,
+  getStorageUsage,
+  type StoredPlan,
+} from "./persistence.js";
 
-const UserPrefsSchema = z.object({
-  theme: z.enum(["dark", "light"]),
-  volume: z.number().min(0).max(100),
-});
-
-describe("persistence layer", () => {
+describe("persistence store", () => {
   beforeEach(() => {
-    window.localStorage.clear();
+    localStorage.clear();
   });
 
-  afterEach(() => {
-    window.localStorage.clear();
-    vi.restoreAllMocks();
+  it("loads default seed plans when empty", () => {
+    const plans = loadPlans();
+    expect(plans.length).toBeGreaterThanOrEqual(1);
+    expect(plans[0]?.id).toBe("cl-001");
   });
 
-  it("writes and reads valid JSON data with Zod schema verification", () => {
-    const data = { theme: "dark" as const, volume: 80 };
-    const writeRes = writeJson("prefs", data);
-    expect(writeRes.ok).toBe(true);
+  it("saves a new plan and retrieves it by id", () => {
+    const testPlan: StoredPlan = {
+      id: "test-123",
+      title: "Test Feast",
+      date: "2025-11-20",
+      guestCount: 50,
+      completionRatio: 0.5,
+      totalBudget: 15000,
+      vertical: "community",
+      archetype: "Ceramic Loft",
+      venue: "Artisan Loft",
+      sensoryCount: 3,
+      tags: ["Test", "Organic"],
+      description: "A wonderful test feast.",
+      updatedAt: new Date().toISOString(),
+    };
 
-    const readRes = readJson("prefs", UserPrefsSchema);
-    expect(readRes.ok).toBe(true);
-    if (readRes.ok) {
-      expect(readRes.value).toEqual(data);
-    }
+    savePlan(testPlan);
+    const retrieved = getPlanById("test-123");
+    expect(retrieved).toBeDefined();
+    expect(retrieved?.title).toBe("Test Feast");
+    expect(retrieved?.totalBudget).toBe(15000);
   });
 
-  it("returns KEY_NOT_FOUND when key does not exist", () => {
-    const readRes = readJson("non_existent", UserPrefsSchema);
-    expect(readRes.ok).toBe(false);
-    if (!readRes.ok) {
-      expect(readRes.error).toBe("KEY_NOT_FOUND");
-    }
+  it("updates an existing plan when saving with same id", () => {
+    const testPlan: StoredPlan = {
+      id: "cl-001",
+      title: "Updated Elena & Marcus",
+      date: "2025-12-01",
+      guestCount: 150,
+      completionRatio: 0.8,
+      totalBudget: 30000,
+      vertical: "wedding",
+      archetype: "Wedding Atelier",
+      venue: "Stone Creek Orchard",
+      sensoryCount: 4,
+      tags: ["Updated"],
+      description: "Updated description.",
+      updatedAt: new Date().toISOString(),
+    };
+
+    savePlan(testPlan);
+    const retrieved = getPlanById("cl-001");
+    expect(retrieved?.title).toBe("Updated Elena & Marcus");
+    expect(retrieved?.guestCount).toBe(150);
   });
 
-  it("quarantines corrupt/malformed JSON without throwing", () => {
-    window.localStorage.setItem("occasio:v1:corrupt", "{invalid json");
-    const readRes = readJson("corrupt", UserPrefsSchema);
-
-    expect(readRes.ok).toBe(false);
-    if (!readRes.ok) {
-      expect(readRes.error).toBe("MALFORMED_JSON");
-      expect(readRes.quarantined).toBe(true);
-    }
-
-    expect(window.localStorage.getItem("occasio:v1:corrupt")).toBeNull();
-
-    let foundQuarantine = false;
-    for (let i = 0; i < window.localStorage.length; i += 1) {
-      if (window.localStorage.key(i)?.startsWith("occasio:v1:corrupt:quarantined:")) {
-        foundQuarantine = true;
-        break;
-      }
-    }
-    expect(foundQuarantine).toBe(true);
-  });
-
-  it("quarantines data that fails Zod schema validation", () => {
-    window.localStorage.setItem(
-      "occasio:v1:invalid_schema",
-      JSON.stringify({ theme: "neon", volume: 999 })
-    );
-
-    const readRes = readJson("invalid_schema", UserPrefsSchema);
-    expect(readRes.ok).toBe(false);
-    if (!readRes.ok) {
-      expect(readRes.error).toBe("VALIDATION_FAILED");
-      expect(readRes.quarantined).toBe(true);
-    }
-    expect(window.localStorage.getItem("occasio:v1:invalid_schema")).toBeNull();
-  });
-
-  it("quarantine returns false if key does not exist", () => {
-    expect(quarantine("does_not_exist")).toBe(false);
-  });
-
-  it("removes single key correctly", () => {
-    writeJson("to_delete", { theme: "dark" as const, volume: 50 });
-    expect(readJson("to_delete", UserPrefsSchema).ok).toBe(true);
-
-    removeStorageKey("to_delete");
-    expect(readJson("to_delete", UserPrefsSchema).ok).toBe(false);
-  });
-
-  it("clears all occasio keys while preserving foreign keys", () => {
-    window.localStorage.setItem("occasio:v1:item1", "test1");
-    window.localStorage.setItem("occasio:v1:item2", "test2");
-    window.localStorage.setItem("unrelated_app:setting", "preserved");
-
-    clearAllOccasioKeys();
-
-    expect(window.localStorage.getItem("occasio:v1:item1")).toBeNull();
-    expect(window.localStorage.getItem("occasio:v1:item2")).toBeNull();
-    expect(window.localStorage.getItem("unrelated_app:setting")).toBe("preserved");
-  });
-
-  it("catches storage exceptions in writeJson gracefully", () => {
-    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
-      throw new Error("QuotaExceededError");
+  it("resets vault back to default seeds", () => {
+    savePlan({
+      id: "custom-to-delete",
+      title: "Temporary Plan",
+      date: "2025-10-10",
+      guestCount: 20,
+      completionRatio: 0.1,
+      totalBudget: 5000,
+      vertical: "milestone",
+      archetype: "Meadow",
+      venue: "Meadow",
+      sensoryCount: 2,
+      tags: [],
+      description: "Will be wiped",
+      updatedAt: new Date().toISOString(),
     });
 
-    const res = writeJson("overflow", { theme: "dark" as const, volume: 50 });
-    expect(res.ok).toBe(false);
-    if (!res.ok) {
-      expect(res.error).toBe("QuotaExceededError");
-    }
+    expect(getPlanById("custom-to-delete")).toBeDefined();
+    resetVault();
+    expect(getPlanById("custom-to-delete")).toBeUndefined();
+    expect(getPlanById("cl-001")).toBeDefined();
   });
 
-  it("catches storage exceptions in readJson gracefully", () => {
-    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
-      throw new Error("SecurityError");
-    });
+  it("exports and imports valid vault JSON correctly", () => {
+    const exportedJson = exportVaultJson();
+    expect(exportedJson).toContain("Elena & Marcus");
 
-    const res = readJson("blocked", UserPrefsSchema);
-    expect(res.ok).toBe(false);
-    if (!res.ok) {
-      expect(res.error).toBe("SecurityError");
-    }
+    localStorage.clear();
+    const count = importVaultJson(exportedJson);
+    expect(count).toBeGreaterThanOrEqual(1);
+
+    const plans = loadPlans();
+    expect(plans.length).toBe(count);
   });
 
-  it("catches storage exceptions in removeStorageKey and clearAllOccasioKeys", () => {
-    window.localStorage.setItem("occasio:v1:temp", "val");
-    vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() => {
-      throw new Error("DiskAccessError");
-    });
+  it("handles invalid JSON safely on import", () => {
+    const count = importVaultJson("invalid json syntax");
+    expect(count).toBe(0);
+  });
 
-    const removeRes = removeStorageKey("some_key");
-    expect(removeRes.ok).toBe(false);
+  it("handles non-array valid JSON on import", () => {
+    const count = importVaultJson(JSON.stringify({ notAnArray: true }));
+    expect(count).toBe(0);
+  });
 
-    const clearRes = clearAllOccasioKeys();
-    expect(clearRes.ok).toBe(false);
+  it("removes a specific plan by identifier", () => {
+    loadPlans();
+    expect(getPlanById("cl-001")).toBeDefined();
+    removePlan("cl-001");
+    expect(getPlanById("cl-001")).toBeUndefined();
+  });
+
+  it("handles corrupted or empty JSON array in localStorage safely", () => {
+    localStorage.setItem("occasio_soft_clay_plans", "invalid-json");
+    const plansFromCorrupt = loadPlans();
+    expect(plansFromCorrupt.length).toBeGreaterThan(0);
+
+    localStorage.setItem("occasio_soft_clay_plans", JSON.stringify([]));
+    const plansFromEmpty = loadPlans();
+    expect(plansFromEmpty.length).toBeGreaterThan(0);
+  });
+
+  it("computes storage usage information", () => {
+    loadPlans();
+    const usage = getStorageUsage();
+    expect(usage.bytes).toBeGreaterThan(0);
+    expect(usage.formatted).toContain("KB");
+    expect(typeof usage.percentage).toBe("number");
   });
 });

@@ -1,156 +1,199 @@
-import type { z } from "zod";
-
 /**
- * Standard discriminated union result returned by storage operations.
+ * Vault persistence layer for local storage sovereign celebration data.
+ * Manages client-side storage for celebration plans without external telemetry.
  */
-export type PersistenceResult<T> =
-  | { readonly ok: true; readonly value: T }
-  | { readonly ok: false; readonly error: string; readonly quarantined?: boolean };
 
-const STORAGE_PREFIX = "occasio:v1:";
-
-/**
- * Normalizes a key name to guarantee the standard Occasio v1 namespace.
- *
- * @param key - Raw storage key or suffix
- * @returns Fully qualified namespaced storage key
- */
-export function buildStorageKey(key: string): string {
-  return key.startsWith(STORAGE_PREFIX) ? key : `${STORAGE_PREFIX}${key}`;
+export interface StoredPlan {
+  readonly id: string;
+  readonly title: string;
+  readonly date: string;
+  readonly guestCount: number;
+  readonly completionRatio: number;
+  readonly totalBudget: number;
+  readonly vertical: "wedding" | "milestone" | "community" | "anniversary";
+  readonly archetype: string;
+  readonly venue: string;
+  readonly sensoryCount: number;
+  readonly tags: readonly string[];
+  readonly description: string;
+  readonly imageUrl?: string;
+  readonly updatedAt: string;
 }
 
+const STORAGE_KEY = "soft_clay_vault_plans_v1";
+
+const INITIAL_PLANS: readonly StoredPlan[] = [
+  {
+    id: "cl-001",
+    title: "Elena & Marcus Blossom Wedding",
+    date: "2025-10-18",
+    guestCount: 120,
+    completionRatio: 0.68,
+    totalBudget: 24000,
+    vertical: "wedding",
+    archetype: "Wedding Atelier",
+    venue: "Stone Creek Orchard",
+    sensoryCount: 4,
+    tags: ["Hand-Formed", "Live Music"],
+    description:
+      "Terracotta & wild cosmos palette, open-air pergola banquet, handmade glazed place markers.",
+    imageUrl:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuDyQm7_G55zHQNWVY0HD7s_4GnGOI7WC1mZMfZgPXlAxTqq7aHhOri22Vi6_3lutsJLMvCwQHgpQjOG_ic4u2lZlDh7oHh1DTz5gZbVL50ba1g6EPhcdsoiBVj8xJMPSE6xZEF1ZE2OTClJ4cFSPAVz1Ir_8Lx06AstTnni4bp_eDGnpoGRX4vTb--FHSfmkare-Kt4M_T3FxYur7Ka9ufkWMnzo1AAcIGfdExu2iE4wUsuZtjbavXN2Q",
+    updatedAt: "2025-10-18T10:00:00.000Z",
+  },
+  {
+    id: "cl-002",
+    title: "Grandma Rosa's 80th Jubilee",
+    date: "2025-07-12",
+    guestCount: 45,
+    completionRatio: 0.92,
+    totalBudget: 4200,
+    vertical: "milestone",
+    archetype: "Milestone Birthday",
+    venue: "Ceramic Loft Studio",
+    sensoryCount: 3,
+    tags: ["Family Heirloom", "Intimate"],
+    description:
+      "Garden pavilion gathering with ancestral family recipe tastings and custom ceramic memory plates.",
+    imageUrl:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuDr8SSNYXXjECraEJUpEz8mzEDDWi-Ks4SHVVX2tv57dE2Cur7uoelTZGu5cHt3mqG5e6zeww5rHN-k5UJPAeEZH-Aec49KmihuzdJl3TBzABeE2nweIJLhyPROnStNhXWLmRaT3vy6-flLKQRh3Y30rjeWlnYS6X9g8i-JIs_50OI-7j_kBoF52rVmEq8zROwcfgoHrpWfYtcekhivMgcYxW_5A586yB0hr1uM5KByf1PSL4xrnigxRg",
+    updatedAt: "2025-07-12T10:00:00.000Z",
+  },
+  {
+    id: "cl-003",
+    title: "Oakridge Summer Artisan Fair",
+    date: "2025-08-30",
+    guestCount: 350,
+    completionRatio: 0.35,
+    totalBudget: 7800,
+    vertical: "community",
+    archetype: "Communal Fair",
+    venue: "Wildflower Meadow",
+    sensoryCount: 2,
+    tags: ["Live Wheel", "Multi-vendor"],
+    description:
+      "Outdoor craft demonstration booths, slip-cast workshops, acoustic stage, and artisanal bakeries.",
+    imageUrl:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuABaU318T4mpUuBTIIM39SQ-4Pbd0ATYQY94k6p-3ePhoOVgotAiYrOeZo1PmRbyS4-0y5FR97sr7Bx4Rm3AWneZ9a2_jng0l2qZxuYj7piFPQze6xRcifuBUZREp783IIz-1vreKFMSAoJ_Un6n0L1igOtZv1Y7cWvWu0QxE27F-QMx-YALhpiyQQqpGMJlxRd9HUbA9RXMEBnMU5nFdC2siNFSm0mBH4oCm7RJOcG8deuTArTGxTQaA",
+    updatedAt: "2025-08-30T10:00:00.000Z",
+  },
+];
+
 /**
- * Safely reads and validates a JSON value from localStorage using a Zod schema.
- * Corrupt or non-conforming entries are automatically quarantined to prevent repeated errors.
- *
- * @param key - Storage key name
- * @param schema - Zod validation schema for the expected payload
- * @returns Ok with parsed data or Error with failure reason and quarantine indicator
+ * Retrieves all stored celebration plans from client storage.
  */
-export function readJson<T>(key: string, schema: z.ZodType<T>): PersistenceResult<T> {
-  const fullKey = buildStorageKey(key);
-  try {
-    if (typeof window === "undefined") {
-      return { ok: false, error: "STORAGE_UNAVAILABLE" };
-    }
-    const raw = window.localStorage.getItem(fullKey);
-    if (raw === null) {
-      return { ok: false, error: "KEY_NOT_FOUND" };
-    }
-
-    let parsedJson: unknown;
-    try {
-      parsedJson = JSON.parse(raw);
-    } catch {
-      quarantine(key);
-      return { ok: false, error: "MALFORMED_JSON", quarantined: true };
-    }
-
-    const validation = schema.safeParse(parsedJson);
-    if (!validation.success) {
-      quarantine(key);
-      return { ok: false, error: "VALIDATION_FAILED", quarantined: true };
-    }
-
-    return { ok: true, value: validation.data };
-  } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+export function loadPlans(): StoredPlan[] {
+  if (typeof window === "undefined") {
+    return [...INITIAL_PLANS];
   }
-}
-
-/**
- * Safely serializes and persists a value to localStorage under the Occasio namespace.
- * Catches QuotaExceededError and private-mode security exceptions without throwing.
- *
- * @param key - Storage key name
- * @param value - Value to serialize to JSON
- * @returns Ok on successful write or Error on quota/storage exception
- */
-export function writeJson(key: string, value: unknown): PersistenceResult<void> {
-  const fullKey = buildStorageKey(key);
-  try {
-    if (typeof window === "undefined") {
-      return { ok: false, error: "STORAGE_UNAVAILABLE" };
-    }
-    const serialized = JSON.stringify(value);
-    window.localStorage.setItem(fullKey, serialized);
-    return { ok: true, value: undefined };
-  } catch (err) {
-    return {
-      ok: false,
-      error: err instanceof Error ? err.message : "QUOTA_OR_PERMISSION_ERROR",
-    };
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  if (!raw) {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_PLANS));
+    return [...INITIAL_PLANS];
   }
-}
-
-/**
- * Quarantines a corrupt or unparseable localStorage record by renaming it with a timestamp
- * and clearing the active key, preserving forensics without crashing subsequent boots.
- *
- * @param key - Storage key to quarantine
- * @returns True if existing data was quarantined, false otherwise
- */
-export function quarantine(key: string): boolean {
-  const fullKey = buildStorageKey(key);
   try {
-    if (typeof window === "undefined") {
-      return false;
+    const parsed = JSON.parse(raw) as unknown;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed as StoredPlan[];
     }
-    const raw = window.localStorage.getItem(fullKey);
-    if (raw === null) {
-      return false;
-    }
-    const timestamp = Date.now().toString();
-    const quarantinedKey = `${fullKey}:quarantined:${timestamp}`;
-    window.localStorage.setItem(quarantinedKey, raw);
-    window.localStorage.removeItem(fullKey);
-    return true;
+    return [...INITIAL_PLANS];
   } catch {
-    return false;
+    return [...INITIAL_PLANS];
   }
 }
 
 /**
- * Removes a specific key from localStorage.
- *
- * @param key - Storage key to remove
- * @returns Ok on completion or Error if storage access fails
+ * Retrieves a single stored plan by its unique identifier.
  */
-export function removeStorageKey(key: string): PersistenceResult<void> {
-  const fullKey = buildStorageKey(key);
+export function getPlanById(id: string): StoredPlan | undefined {
+  const plans = loadPlans();
+  return plans.find((p) => p.id === id);
+}
+
+/**
+ * Persists a new or updated celebration plan into client storage.
+ */
+export function savePlan(plan: StoredPlan): void {
+  if (typeof window === "undefined") return;
+  const current = loadPlans();
+  const existingIdx = current.findIndex((p) => p.id === plan.id);
+  const updated = [...current];
+  if (existingIdx >= 0) {
+    updated[existingIdx] = plan;
+  } else {
+    updated.unshift(plan);
+  }
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+}
+
+/**
+ * Removes a plan by identifier from client storage.
+ */
+export function removePlan(id: string): void {
+  if (typeof window === "undefined") return;
+  const current = loadPlans();
+  const filtered = current.filter((p) => p.id !== id);
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+}
+
+/**
+ * Computes storage bytes consumed by celebration plans in client storage.
+ */
+export function getStorageUsage(): { bytes: number; formatted: string; percentage: number } {
+  if (typeof window === "undefined") {
+    return { bytes: 145408, formatted: "142 KB", percentage: 2.8 };
+  }
+  const raw = window.localStorage.getItem(STORAGE_KEY) ?? "";
+  const bytes = new Blob([raw]).size;
+  const kb = Math.max(1, Math.round(bytes / 1024));
+  const maxKb = 5120;
+  const pct = Math.min(100, Number(((kb / maxKb) * 100).toFixed(1)));
+  return {
+    bytes,
+    formatted: `${String(kb)} KB`,
+    percentage: pct,
+  };
+}
+
+/**
+ * Exports current vault data as a downloadable JSON string.
+ */
+export function exportVaultJson(): string {
+  const plans = loadPlans();
+  const payload = {
+    vaultVersion: "2.4.0",
+    lastExportTimestamp: new Date().toISOString(),
+    authorLocale: "en-US",
+    storageType: "browser_local_deterministic",
+    celebrations: plans,
+  };
+  return JSON.stringify(payload, null, 2);
+}
+
+/**
+ * Restores or merges plans from an imported JSON vault file.
+ */
+export function importVaultJson(rawJson: string): number {
+  if (typeof window === "undefined") return 0;
   try {
-    if (typeof window === "undefined") {
-      return { ok: false, error: "STORAGE_UNAVAILABLE" };
-    }
-    window.localStorage.removeItem(fullKey);
-    return { ok: true, value: undefined };
-  } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    const data = JSON.parse(rawJson) as { celebrations?: StoredPlan[] };
+    if (!Array.isArray(data.celebrations)) return 0;
+    const existing = loadPlans();
+    const map = new Map<string, StoredPlan>();
+    for (const p of existing) map.set(p.id, p);
+    for (const p of data.celebrations) map.set(p.id, p);
+    const merged = Array.from(map.values());
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+    return data.celebrations.length;
+  } catch {
+    return 0;
   }
 }
 
 /**
- * Clears all Occasio-namespaced keys from localStorage, leaving other origin keys untouched.
- *
- * @returns Ok on completion or Error if storage access fails
+ * Resets local celebration vault storage back to initial sample state.
  */
-export function clearAllOccasioKeys(): PersistenceResult<void> {
-  try {
-    if (typeof window === "undefined") {
-      return { ok: false, error: "STORAGE_UNAVAILABLE" };
-    }
-    const keysToRemove: string[] = [];
-    for (let i = 0; i < window.localStorage.length; i += 1) {
-      const k = window.localStorage.key(i);
-      if (k?.startsWith(STORAGE_PREFIX)) {
-        keysToRemove.push(k);
-      }
-    }
-    for (const k of keysToRemove) {
-      window.localStorage.removeItem(k);
-    }
-    return { ok: true, value: undefined };
-  } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : String(err) };
-  }
+export function resetVault(): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_PLANS));
 }

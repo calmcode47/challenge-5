@@ -1,39 +1,37 @@
-import { act } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { clearAllOccasioKeys, writeJson } from "./persistence";
-import { useUiStore } from "./uiStore";
+import { describe, it, expect, beforeEach } from "vitest";
+import { useUiStore } from "./uiStore.js";
 
-describe("useUiStore", () => {
+describe("uiStore", () => {
   beforeEach(() => {
-    clearAllOccasioKeys();
-    useUiStore.setState({ effectsMode: "auto" });
-  });
-
-  afterEach(() => {
-    clearAllOccasioKeys();
-  });
-
-  it("initializes with default auto mode", () => {
-    expect(useUiStore.getState().effectsMode).toBe("auto");
-  });
-
-  it("updates and persists effectsMode changes", () => {
-    act(() => {
-      useUiStore.getState().setEffectsMode("reduced");
+    useUiStore.setState({
+      isSearchOpen: false,
+      notification: null,
+      activePlanId: undefined,
     });
-    expect(useUiStore.getState().effectsMode).toBe("reduced");
-
-    act(() => {
-      useUiStore.getState().setEffectsMode("off");
-    });
-    expect(useUiStore.getState().effectsMode).toBe("off");
   });
 
-  it("persists valid mode to storage", () => {
-    writeJson("ui_state", { effectsMode: "full" });
-    act(() => {
-      useUiStore.getState().setEffectsMode("full");
-    });
-    expect(useUiStore.getState().effectsMode).toBe("full");
+  it("opens and closes search dialog", () => {
+    expect(useUiStore.getState().isSearchOpen).toBe(false);
+    useUiStore.getState().openSearch();
+    expect(useUiStore.getState().isSearchOpen).toBe(true);
+    useUiStore.getState().closeSearch();
+    expect(useUiStore.getState().isSearchOpen).toBe(false);
+  });
+
+  it("shows and dismisses notifications", () => {
+    expect(useUiStore.getState().notification).toBeNull();
+    useUiStore.getState().showNotification("Event Saved!", "success");
+    const notif = useUiStore.getState().notification;
+    expect(notif?.message).toBe("Event Saved!");
+    expect(notif?.type).toBe("success");
+
+    useUiStore.getState().dismissNotification();
+    expect(useUiStore.getState().notification).toBeNull();
+  });
+
+  it("sets active plan ID", () => {
+    expect(useUiStore.getState().activePlanId).toBeUndefined();
+    useUiStore.getState().setActivePlanId("plan-999");
+    expect(useUiStore.getState().activePlanId).toBe("plan-999");
   });
 });

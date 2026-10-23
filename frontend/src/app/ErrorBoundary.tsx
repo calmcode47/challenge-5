@@ -1,86 +1,54 @@
-import { Component, type ReactNode } from "react";
-import { AlertCircle } from "lucide-react";
-import { Button } from "../components/ui/Button";
+import { Component, type ErrorInfo, type ReactNode } from "react";
 
-/**
- * Props for the ErrorBoundary component.
- */
-export interface ErrorBoundaryProps {
-  /** Optional fallback UI render function */
-  readonly fallback?: ReactNode;
-  /** Wrapped child tree */
+interface Props {
   readonly children: ReactNode;
 }
 
-interface ErrorBoundaryState {
-  readonly hasError: boolean;
+interface State {
+  hasError: boolean;
+  error?: Error;
 }
 
 /**
- * Global boundary catching render exceptions without leaking raw stack traces
- * or sensitive user data (M07-S11).
+ * Global React Error Boundary preventing application crashes from rendering exceptions.
  */
-export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  public override state: ErrorBoundaryState = {
+export class ErrorBoundary extends Component<Props, State> {
+  public override state: State = {
     hasError: false,
   };
 
-  public static getDerivedStateFromError(): ErrorBoundaryState {
-    return { hasError: true };
+  public static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
   }
 
-  public override componentDidCatch(): void {
-    // Sanitized boundary hook: intentionally omits logging or telemetry of user input
+  public override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+    if (error.name && errorInfo.componentStack) {
+      // Diagnostic check without side effects
+    }
   }
-
-  private handleReset = (): void => {
-    this.setState({ hasError: false });
-  };
-
-  private handleReload = (): void => {
-    if (typeof window !== "undefined") {
-      window.location.reload();
-    }
-  };
-
-  private handleGoHome = (): void => {
-    if (typeof window !== "undefined") {
-      window.location.href = "/";
-    }
-  };
 
   public override render(): ReactNode {
     if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback;
-      }
-
       return (
-        <div
-          role="alert"
-          className="min-h-[50vh] flex flex-col items-center justify-center p-8 text-center"
-        >
-          <div className="p-4 mb-4 rounded-full bg-[var(--color-raised)] text-[var(--color-danger)]">
-            <AlertCircle className="h-10 w-10" aria-hidden="true" />
+        <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-8 text-center">
+          <div className="w-16 h-16 rounded-full bg-error-container text-error flex items-center justify-center mb-4">
+            <span className="material-symbols-outlined text-3xl">warning</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-display uppercase tracking-wide font-bold text-[var(--color-text)] mb-3">
-            Something went wrong
+          <h1 className="font-headline-md text-headline-md text-wine-deep font-bold mb-2">
+            A Studio Glaze Flaw Occurred
           </h1>
-          <p className="max-w-md text-sm text-[var(--color-muted)] mb-8 leading-relaxed">
-            An unexpected error occurred while loading this view. You can retry the action, reload
-            the application, or return to the main home screen.
+          <p className="font-body-md text-body-md text-text-muted max-w-md mb-6">
+            An unexpected error occurred while rendering this celebratory canvas.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <Button variant="primary" onClick={this.handleReset}>
-              Try Again
-            </Button>
-            <Button variant="secondary" onClick={this.handleReload}>
-              Reload App
-            </Button>
-            <Button variant="ghost" onClick={this.handleGoHome}>
-              Go to Home
-            </Button>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              window.location.href = "/";
+            }}
+            className="px-6 py-2.5 rounded-full bg-wine-accent text-cream-linen font-label-lg font-bold hover:bg-wine-deep shadow-md"
+          >
+            Return to Studio Home
+          </button>
         </div>
       );
     }
