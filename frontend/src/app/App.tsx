@@ -1,17 +1,19 @@
-import type { ReactElement } from "react";
+import { RouterProvider } from "react-router";
+import { ErrorBoundary } from "./ErrorBoundary";
+import { Providers } from "./providers";
+import { router } from "./router";
 
 /**
- * Root application component for Occasio.
- * Renders the primary semantic landmark and page heading.
+ * Root application component wrapping global error boundary, providers, and router.
  *
- * @returns The root React element containing the application heading.
+ * @returns JSX.Element
  */
-export function App(): ReactElement {
+export function App(): JSX.Element {
   return (
-    <main id="main" tabIndex={-1}>
-      <h1>Occasio</h1>
-    </main>
+    <ErrorBoundary>
+      <Providers>
+        <RouterProvider router={router} />
+      </Providers>
+    </ErrorBoundary>
   );
 }
-
-export default App;

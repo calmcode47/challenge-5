@@ -1,5 +1,164 @@
 @import "tailwindcss";
 
+@import "@fontsource/bebas-neue/latin-400.css";
+@import "@fontsource/barlow/latin-400.css";
+@import "@fontsource/barlow/latin-500.css";
+@import "@fontsource/barlow/latin-600.css";
+@import "@fontsource/dm-mono/latin-400.css";
+@import "@fontsource/dm-mono/latin-500.css";
+
 @theme {
-  /* Design system tokens will be expanded in F05 */
+  --color-bg: #07060b;
+  --color-surface: #110f18;
+  --color-raised: #1a1724;
+  --color-text: #f5f2ea;
+  --color-muted: #b9b3c7;
+  --color-accent: #f2c879;
+  --color-coral: #ff7a6b;
+  --color-teal: #5eead4;
+  --color-violet: #9a8cff;
+  --color-danger: #ff8a8a;
+  --color-success: #6ee7a8;
+  --color-line: #6b6580;
+  --color-line-subtle: #2a2638;
+
+  --font-display: "Bebas Neue", sans-serif;
+  --font-body: "Barlow", sans-serif;
+  --font-mono: "DM Mono", monospace;
+
+  --radius-control: 6px;
+  --radius-card: 14px;
+  --radius-pill: 9999px;
+
+  --ease-reveal: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-padding-top: 5rem;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+}
+
+/* Custom subtle grain overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.035;
+  background-image: radial-gradient(var(--color-text) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+::selection {
+  background-color: var(--color-accent);
+  color: var(--color-bg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Fluid display heading scale */
+h1,
+.font-display-title {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+h1 {
+  font-size: clamp(2rem, 5vw + 1rem, 3.75rem);
+  line-height: 1.05;
+}
+
+h2 {
+  font-size: clamp(1.5rem, 3vw + 0.75rem, 2.5rem);
+  line-height: 1.15;
+}
+
+h3 {
+  font-size: clamp(1.2rem, 2vw + 0.5rem, 1.75rem);
+  line-height: 1.25;
+}
+
+/* Tabular numerals for data metrics and currency */
+.tabular-nums {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Static fallback gradient when 3D background is off or WebGL unavailable */
+.bg-static {
+  background-color: var(--color-bg);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(154, 140, 255, 0.15), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 60%, rgba(242, 200, 121, 0.1), transparent),
+    radial-gradient(ellipse 50% 30% at 0% 90%, rgba(94, 234, 212, 0.08), transparent);
+}
+
+/* Accessibility: Reduced motion overrides */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Accessibility: High contrast mode overrides */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+  .bg-static {
+    background: Canvas;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :focus-visible {
+    outline-width: 3px;
+  }
+  body {
+    --color-line: #9e97b8;
+  }
+}
+
+/* Print styles: hide navigation chrome, clean black-on-white */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  header,
+  footer,
+  nav,
+  .no-print {
+    display: none !important;
+  }
 }

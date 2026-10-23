@@ -9,6 +9,14 @@ if (typeof HTMLCanvasElement !== "undefined") {
   HTMLCanvasElement.prototype.getContext = () => null;
 }
 
+// Polyfill Element pointer capture and scrolling methods for Radix primitives in jsdom
+if (typeof Element !== "undefined") {
+  Element.prototype.hasPointerCapture = () => false;
+  Element.prototype.setPointerCapture = () => undefined;
+  Element.prototype.releasePointerCapture = () => undefined;
+  Element.prototype.scrollIntoView = () => undefined;
+}
+
 // Polyfill window.matchMedia
 if (typeof window.matchMedia !== "function") {
   Object.defineProperty(window, "matchMedia", {
