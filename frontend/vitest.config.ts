@@ -7,6 +7,11 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
+    server: {
+      deps: {
+        inline: ["three", "@react-three/fiber", "@react-three/drei"],
+      },
+    },
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],

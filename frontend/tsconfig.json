@@ -6,7 +6,6 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "jsx": "react-jsx",
-    "rootDir": "src",
     "outDir": "dist",
     "paths": {
       "@occasio/shared": ["../shared/src/index.ts"]

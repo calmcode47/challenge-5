@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
 import { axe } from "vitest-axe";
+import { EffectsProvider } from "../../three/EffectsProvider";
 import { AppShell } from "./AppShell";
 import { EffectsToggle } from "./EffectsToggle";
 import { Footer } from "./Footer";
@@ -21,9 +22,11 @@ describe("Layout components", () => {
 
   it("renders Header with main navigation and passes axe check", async () => {
     const { container } = render(
-      <MemoryRouter>
-        <Header />
-      </MemoryRouter>
+      <EffectsProvider>
+        <MemoryRouter>
+          <Header />
+        </MemoryRouter>
+      </EffectsProvider>
     );
 
     expect(screen.getByRole("navigation", { name: "Main Navigation" })).toBeInTheDocument();
@@ -68,7 +71,11 @@ describe("Layout components", () => {
 
   it("opens EffectsToggle dialog and allows changing effects mode", async () => {
     const user = userEvent.setup();
-    const { baseElement } = render(<EffectsToggle />);
+    const { baseElement } = render(
+      <EffectsProvider>
+        <EffectsToggle />
+      </EffectsProvider>
+    );
 
     const toggleBtn = screen.getByRole("button", { name: /visual effects setting/i });
     await user.click(toggleBtn);

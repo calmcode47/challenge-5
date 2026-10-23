@@ -1,6 +1,7 @@
-import { Sparkles } from "lucide-react";
+import { Pause, Play, Sparkles } from "lucide-react";
 import { useState } from "react";
-import { useUiStore, type EffectsMode } from "../../state/uiStore";
+import type { EffectsMode } from "../../state/uiStore";
+import { useEffects } from "../../three/EffectsProvider";
 import { Button } from "../ui/Button";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/Dialog";
 import { RadioCardGroup, type RadioCardOption } from "../ui/RadioCardGroup";
@@ -31,42 +32,62 @@ const EFFECTS_OPTIONS: readonly RadioCardOption[] = [
 ];
 
 /**
- * Visual effects control permitting users to throttle or pause 3D animations
+ * Visual effects control permitting users to throttle, configure, or pause 3D animations
  * conforming to WCAG 2.2.2 Pause, Stop, Hide (M07-A8).
  *
  * @returns JSX.Element
  */
 export function EffectsToggle(): JSX.Element {
   const [open, setOpen] = useState(false);
-  const effectsMode = useUiStore((s) => s.effectsMode);
-  const setEffectsMode = useUiStore((s) => s.setEffectsMode);
+  const { quality, userMode, setUserMode, paused, setPaused } = useEffects();
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant="secondary"
-          size="sm"
-          className="text-xs font-mono capitalize gap-1.5"
-          aria-label={`Visual effects setting, currently ${effectsMode}`}
-        >
-          <Sparkles className="h-3.5 w-3.5 text-[var(--color-accent)]" aria-hidden="true" />
-          <span>Effects: {effectsMode}</span>
-        </Button>
-      </DialogTrigger>
-      <DialogContent
-        title="Visual Effects & Motion Settings"
-        description="Customize 3D background rendering, particle density, and motion effects to suit your preferences."
+    <div className="flex items-center gap-1.5">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => {
+          setPaused((p) => !p);
+        }}
+        className="text-xs font-mono gap-1 px-2 text-[var(--color-muted)] hover:text-[var(--color-text)]"
+        aria-label={paused ? "Resume background animation" : "Pause background animation"}
+        title={paused ? "Resume background animation" : "Pause background animation"}
+        disabled={quality === "static"}
       >
-        <RadioCardGroup
-          value={effectsMode}
-          onValueChange={(val) => {
-            setEffectsMode(val as EffectsMode);
-          }}
-          options={EFFECTS_OPTIONS}
-          aria-label="3D Visual Effects Level"
-        />
-      </DialogContent>
-    </Dialog>
+        {paused ? (
+          <Play className="h-3.5 w-3.5 text-[var(--color-accent)]" aria-hidden="true" />
+        ) : (
+          <Pause className="h-3.5 w-3.5 text-[var(--color-muted)]" aria-hidden="true" />
+        )}
+        <span className="hidden sm:inline">{paused ? "Resume" : "Pause"}</span>
+      </Button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="text-xs font-mono capitalize gap-1.5"
+            aria-label={`Visual effects setting, currently ${userMode}`}
+          >
+            <Sparkles className="h-3.5 w-3.5 text-[var(--color-accent)]" aria-hidden="true" />
+            <span>Effects: {userMode}</span>
+          </Button>
+        </DialogTrigger>
+        <DialogContent
+          title="Visual Effects & Motion Settings"
+          description="Customize 3D background rendering, particle density, and motion effects to suit your preferences."
+        >
+          <RadioCardGroup
+            value={userMode}
+            onValueChange={(val) => {
+              setUserMode(val as EffectsMode);
+            }}
+            options={EFFECTS_OPTIONS}
+            aria-label="3D Visual Effects Level"
+          />
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
