@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { generatePlan, warmPlannerApi } from "./plansApi.js";
+import { warmPlannerApi } from "./apiConfig.js";
+import { generatePlan } from "./plansApi.js";
 
 const form = {
   vertical: "wedding" as const,

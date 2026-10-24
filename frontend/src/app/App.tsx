@@ -4,7 +4,7 @@ import { router } from "./router.js";
 import { ErrorBoundary } from "./ErrorBoundary.js";
 import { useUiStore } from "../state/uiStore.js";
 import { MaterialIcon } from "../components/common/MaterialIcon.js";
-import { warmPlannerApi } from "../services/plansApi.js";
+import { warmPlannerApi } from "../services/apiConfig.js";
 
 function GlobalToast(): ReactElement | null {
   const { notification, dismissNotification } = useUiStore();
