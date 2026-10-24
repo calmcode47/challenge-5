@@ -23,6 +23,8 @@ React / Vite client
 
 The deterministic engine is intentional: important planning facts do not become unavailable or opaque when an LLM is slow, unavailable, or omitted. Returned plans are clearly marked `live` (Gemini-enriched) or `deterministic`.
 
+When the Studio opens, the client sends one low-priority, data-free request to `/api/v1/health` per browser session. This wakes a sleeping deployment before the visitor reaches the plan wizard, without delaying rendering or sending an event brief.
+
 ## Local setup
 
 Prerequisites: Node 20+.
@@ -52,7 +54,7 @@ cd frontend && npm run typecheck && npm test && npm run build
 
 ## Deployment
 
-`render.yaml` provisions the API from `backend/`; configure `ALLOWED_ORIGINS` to the public Vercel URL and add `GEMINI_API_KEY` only in Render's encrypted environment settings. Deploy the Vite frontend from this repository using `vercel.json`, with `VITE_API_BASE_URL=https://<your-render-service>/api/v1`.
+`render.yaml` provisions the API from `backend/`; configure `ALLOWED_ORIGINS` to the public Vercel URL and add `GEMINI_API_KEY` only in Render's encrypted environment settings. Deploy the Vite frontend from `frontend/`, where `frontend/vercel.json` defines its Vite build and SPA fallback. Set `VITE_API_BASE_URL=https://<your-render-service>/api/v1` as a Vercel production environment variable. The Vercel project is linked to this repository, so pushes to `main` create deployments automatically.
 
 ## Assumptions
 
