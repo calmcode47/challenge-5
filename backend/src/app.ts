@@ -37,6 +37,7 @@ export function createApp(): express.Express {
   app.use(cors(corsOptions()));
   app.use(express.json({ limit: "32kb", strict: true }));
   app.get("/health", (_request, response) => response.status(200).json({ status: "ok", service: "occasio-api" }));
+  app.get("/api/v1/health", (_request, response) => response.status(200).json({ status: "ok", service: "occasio-api" }));
   app.post("/api/v1/plans/generate", rateLimit(), generatePlan);
   app.use(notFound);
   app.use(errorHandler);

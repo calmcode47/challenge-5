@@ -4,6 +4,7 @@ import { router } from "./router.js";
 import { ErrorBoundary } from "./ErrorBoundary.js";
 import { useUiStore } from "../state/uiStore.js";
 import { MaterialIcon } from "../components/common/MaterialIcon.js";
+import { warmPlannerApi } from "../services/plansApi.js";
 
 function GlobalToast(): ReactElement | null {
   const { notification, dismissNotification } = useUiStore();
@@ -55,6 +56,10 @@ function GlobalToast(): ReactElement | null {
  * Root Application component providing ErrorBoundary, router, and toast provider.
  */
 export function App(): ReactElement {
+  useEffect(() => {
+    void warmPlannerApi();
+  }, []);
+
   return (
     <ErrorBoundary>
       <RouterProvider router={router} />
