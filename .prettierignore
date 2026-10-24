@@ -1,0 +1,5 @@
+node_modules/
+dist/
+coverage/
+frontend/FRONTEND_REPORT.md
+FRONTEND_REPORT.md

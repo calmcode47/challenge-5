@@ -1,5 +1,5 @@
 import { useState, type ReactElement } from "react";
-import { useSearchParams, useNavigate } from "react-router";
+import { useSearchParams, useNavigate, type NavigateFunction } from "react-router";
 import { Header } from "../../components/layout/Header.js";
 import { Footer } from "../../components/layout/Footer.js";
 import { SearchDialog } from "../../components/common/SearchDialog.js";
@@ -11,7 +11,8 @@ import { WizardSensoryStep } from "./WizardSensoryStep.js";
 import { WizardTicketSidebar } from "./WizardTicketSidebar.js";
 import type { WizardFormState, WizardVertical, WizardVenue } from "./wizardTypes.js";
 import { savePlan, type StoredPlan } from "../../state/persistence.js";
-import { useUiStore } from "../../state/uiStore.js";
+import { useUiStore, type UiState } from "../../state/uiStore.js";
+import { generatePlan, type GeneratedPlan } from "../../services/plansApi.js";
 
 function getInitialVertical(param: string | null): WizardVertical {
   if (param === "milestone" || param === "community" || param === "anniversary") {
@@ -80,7 +81,11 @@ function WizardStepList({ formState, setFormState }: StepListProps): ReactElemen
   );
 }
 
-function buildStoredPlan(formState: WizardFormState, id: string): StoredPlan {
+function buildStoredPlan(
+  formState: WizardFormState,
+  id: string,
+  generated?: GeneratedPlan
+): StoredPlan {
   const sensoryCount = [
     formState.sensoryAda,
     formState.sensoryAllergen,
@@ -99,10 +104,47 @@ function buildStoredPlan(formState: WizardFormState, id: string): StoredPlan {
     archetype: formState.venue,
     venue: formState.venue,
     sensoryCount,
-    tags: ["Deterministic", "Hand-Formed"],
-    description: `Sculpted blueprint for ${String(formState.guestCount)} guests with guaranteed zero-variance ledger.`,
+    tags: [generated?.aiMode === "live" ? "AI Enriched" : "Resilient Planner", "Hand-Formed"],
+    description:
+      generated?.personalizedIdeas[0] ??
+      `Sculpted blueprint for ${String(formState.guestCount)} guests with a protected contingency ledger.`,
     updatedAt: new Date().toISOString(),
   };
+}
+
+interface BakePlanActions {
+  readonly navigate: NavigateFunction;
+  readonly setActivePlanId: (id: string) => void;
+  readonly setIsBaking: (value: boolean) => void;
+  readonly showNotification: UiState["showNotification"];
+}
+
+async function bakePlan(
+  formState: WizardFormState,
+  id: string,
+  actions: BakePlanActions
+): Promise<void> {
+  try {
+    const generated = await generatePlan(formState);
+    const newPlan = buildStoredPlan(formState, id, generated);
+    savePlan(newPlan);
+    actions.setActivePlanId(id);
+    actions.showNotification(
+      `Celebration Inscribed: ${newPlan.title} ${generated.aiMode === "live" ? "AI brief enriched." : "resilient brief prepared."}`,
+      "success"
+    );
+  } catch {
+    const newPlan = buildStoredPlan(formState, id);
+    savePlan(newPlan);
+    actions.setActivePlanId(id);
+    actions.showNotification(
+      "Planner service is offline. Your complete local workspace was still created.",
+      "warning"
+    );
+  } finally {
+    actions.setIsBaking(false);
+    void actions.navigate(`/event-workspace?planId=${id}`);
+  }
 }
 
 /**
@@ -128,21 +170,10 @@ export function WizardPage(): ReactElement {
 
   const [isBaking, setIsBaking] = useState(false);
 
-  const handleBakePlan = (): void => {
+  const handleBakePlan = async (): Promise<void> => {
     setIsBaking(true);
     const id = `cl-${Date.now().toString().slice(-4)}`;
-    const newPlan = buildStoredPlan(formState, id);
-    savePlan(newPlan);
-    setActivePlanId(id);
-
-    setTimeout(() => {
-      setIsBaking(false);
-      showNotification(
-        `Celebration Inscribed: ${newPlan.title} escrow ledger verified.`,
-        "success"
-      );
-      void navigate(`/event-workspace?planId=${id}`);
-    }, 1200);
+    await bakePlan(formState, id, { navigate, setActivePlanId, setIsBaking, showNotification });
   };
 
   return (
@@ -156,7 +187,9 @@ export function WizardPage(): ReactElement {
             <WizardTicketSidebar
               formState={formState}
               isBaking={isBaking}
-              onBake={handleBakePlan}
+              onBake={() => {
+                void handleBakePlan();
+              }}
             />
           </div>
         </div>
