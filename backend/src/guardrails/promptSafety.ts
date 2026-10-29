@@ -13,5 +13,8 @@ export function isUnsafePrompt(value: string): boolean {
 
 /** Removes control characters before a note is included in an LLM boundary. */
 export function normalizeUserText(value: string): string {
-  return value.replace(/[\u0000-\u001F\u007F]/g, " ").replace(/\s+/g, " ").trim();
+  return value
+    .replace(/[\p{Cc}]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }

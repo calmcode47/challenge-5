@@ -122,13 +122,21 @@ describe("persistence store", () => {
   });
 
   it("handles corrupted or empty JSON array in localStorage safely", () => {
-    localStorage.setItem("occasio_soft_clay_plans", "invalid-json");
+    localStorage.setItem("soft_clay_vault_plans_v1", "invalid-json");
     const plansFromCorrupt = loadPlans();
     expect(plansFromCorrupt.length).toBeGreaterThan(0);
 
-    localStorage.setItem("occasio_soft_clay_plans", JSON.stringify([]));
+    localStorage.setItem("soft_clay_vault_plans_v1", JSON.stringify([]));
     const plansFromEmpty = loadPlans();
     expect(plansFromEmpty.length).toBeGreaterThan(0);
+
+    localStorage.setItem("soft_clay_vault_plans_v1", JSON.stringify([{ id: "incomplete" }]));
+    expect(loadPlans().length).toBeGreaterThan(0);
+  });
+
+  it("rejects structurally invalid imported vaults", () => {
+    const count = importVaultJson(JSON.stringify({ celebrations: [{ id: "incomplete" }] }));
+    expect(count).toBe(0);
   });
 
   it("computes storage usage information", () => {

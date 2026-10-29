@@ -6,9 +6,14 @@ describe("API", () => {
     const app = createApp();
     const server = app.listen();
     const address = server.address();
-    if (!address || typeof address === "string") throw new Error("Expected TCP address");
-    const rootResponse = await fetch(`http://127.0.0.1:${String(address.port)}/health`);
-    const apiResponse = await fetch(`http://127.0.0.1:${String(address.port)}/api/v1/health`);
+    if (!address || typeof address === "string")
+      throw new Error("Expected TCP address");
+    const rootResponse = await fetch(
+      `http://127.0.0.1:${String(address.port)}/health`,
+    );
+    const apiResponse = await fetch(
+      `http://127.0.0.1:${String(address.port)}/api/v1/health`,
+    );
     await new Promise<void>((resolve) => server.close(() => resolve()));
     expect(rootResponse.status).toBe(200);
     expect(apiResponse.status).toBe(200);

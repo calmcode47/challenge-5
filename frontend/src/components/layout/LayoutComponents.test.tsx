@@ -18,6 +18,7 @@ describe("layout components", () => {
     expect(screen.getByText("Soft Clay")).toBeInTheDocument();
     expect(screen.getByText("Studio Home")).toBeInTheDocument();
     expect(screen.getByText("Plan Wizard")).toBeInTheDocument();
+    expect(screen.getByText("Skip to main content")).toHaveAttribute("href", "#main-content");
 
     const searchBtn = screen.getByLabelText("Search studio");
     fireEvent.click(searchBtn);

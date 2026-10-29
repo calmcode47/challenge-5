@@ -1,5 +1,10 @@
 import { createHash, randomUUID } from "node:crypto";
-import type { BudgetAllocation, GeneratedPlan, PlanRequest, TimelineTask } from "../domain/contracts.js";
+import type {
+  BudgetAllocation,
+  GeneratedPlan,
+  PlanRequest,
+  TimelineTask,
+} from "../domain/contracts.js";
 
 const BASE_SPLITS = [
   ["Venue & rentals", 0.26],
@@ -39,13 +44,26 @@ function allocationFor(request: PlanRequest): BudgetAllocation[] {
   }, 0);
 
   const allocations = BASE_SPLITS.map(([category, basePercent], index) => {
-    const percent = index === 0 ? basePercent + venueShift : index === 1 ? basePercent + foodShift : basePercent;
-    return { category, percent: Math.round(percent * 100), amount: roundCurrency(request.budget * (percent / totalPercent)) };
+    const percent =
+      index === 0
+        ? basePercent + venueShift
+        : index === 1
+          ? basePercent + foodShift
+          : basePercent;
+    return {
+      category,
+      percent: Math.round(percent * 100),
+      amount: roundCurrency(request.budget * (percent / totalPercent)),
+    };
   });
   const finalAllocation = allocations.at(-1);
   if (finalAllocation) {
-    const roundingDifference = roundCurrency(request.budget - allocations.reduce((sum, item) => sum + item.amount, 0));
-    finalAllocation.amount = roundCurrency(finalAllocation.amount + roundingDifference);
+    const roundingDifference = roundCurrency(
+      request.budget - allocations.reduce((sum, item) => sum + item.amount, 0),
+    );
+    finalAllocation.amount = roundCurrency(
+      finalAllocation.amount + roundingDifference,
+    );
   }
   return allocations;
 }
@@ -53,12 +71,42 @@ function allocationFor(request: PlanRequest): BudgetAllocation[] {
 function timelineFor(request: PlanRequest): TimelineTask[] {
   const eventDate = safeDate(request.date);
   return [
-    { phase: "Foundation", due: dateBefore(eventDate, 180), task: "Confirm venue terms, capacity, access route, and deposit schedule.", owner: "Planner" },
-    { phase: "Supplier lock", due: dateBefore(eventDate, 120), task: "Compare insured vendors against the brief and secure priority contracts.", owner: "Planner" },
-    { phase: "Guest care", due: dateBefore(eventDate, 75), task: `Publish RSVP flow and collect dietary and access needs for ${String(request.guestCount)} guests.`, owner: "Host" },
-    { phase: "Experience", due: dateBefore(eventDate, 45), task: "Approve floor plan, run-of-show, weather response, and communications tree.", owner: "Coordinator" },
-    { phase: "Final pass", due: dateBefore(eventDate, 14), task: "Reconfirm vendors, balances, contacts, transport, and emergency kit.", owner: "Planner" },
-    { phase: "Event day", due: request.date, task: "Run the host briefing, vendor check-in, and closing reconciliation.", owner: "Coordinator" },
+    {
+      phase: "Foundation",
+      due: dateBefore(eventDate, 180),
+      task: "Confirm venue terms, capacity, access route, and deposit schedule.",
+      owner: "Planner",
+    },
+    {
+      phase: "Supplier lock",
+      due: dateBefore(eventDate, 120),
+      task: "Compare insured vendors against the brief and secure priority contracts.",
+      owner: "Planner",
+    },
+    {
+      phase: "Guest care",
+      due: dateBefore(eventDate, 75),
+      task: `Publish RSVP flow and collect dietary and access needs for ${String(request.guestCount)} guests.`,
+      owner: "Host",
+    },
+    {
+      phase: "Experience",
+      due: dateBefore(eventDate, 45),
+      task: "Approve floor plan, run-of-show, weather response, and communications tree.",
+      owner: "Coordinator",
+    },
+    {
+      phase: "Final pass",
+      due: dateBefore(eventDate, 14),
+      task: "Reconfirm vendors, balances, contacts, transport, and emergency kit.",
+      owner: "Planner",
+    },
+    {
+      phase: "Event day",
+      due: request.date,
+      task: "Run the host briefing, vendor check-in, and closing reconciliation.",
+      owner: "Coordinator",
+    },
   ];
 }
 
@@ -69,14 +117,30 @@ function vendorsFor(request: PlanRequest): string[] {
     "Ask for a setup and strike schedule that protects the venue and guest flow.",
     "Document dietary, safeguarding, and emergency escalation procedures before final payment.",
   ];
-  if (request.accessibility.allergenAware) tasks.push("Require an allergen matrix, cross-contact plan, and clearly labeled service layout.");
-  if (request.accessibility.stepFreeAccess) tasks.push("Confirm step-free arrival, restroom access, seating clearances, and an accessible evacuation path.");
-  if (request.accessibility.weatherBackup) tasks.push("Obtain a weather pivot plan with trigger time, rain-site layout, and equipment responsibility.");
+  if (request.accessibility.allergenAware)
+    tasks.push(
+      "Require an allergen matrix, cross-contact plan, and clearly labeled service layout.",
+    );
+  if (request.accessibility.stepFreeAccess)
+    tasks.push(
+      "Confirm step-free arrival, restroom access, seating clearances, and an accessible evacuation path.",
+    );
+  if (request.accessibility.weatherBackup)
+    tasks.push(
+      "Obtain a weather pivot plan with trigger time, rain-site layout, and equipment responsibility.",
+    );
   return tasks;
 }
 
 function ideasFor(request: PlanRequest): string[] {
-  const theme = request.eventType === "community" ? "neighbourhood maker table" : request.eventType === "milestone" ? "memory-table ritual" : request.eventType === "anniversary" ? "shared-story toast" : "welcome-note keepsake";
+  const theme =
+    request.eventType === "community"
+      ? "neighbourhood maker table"
+      : request.eventType === "milestone"
+        ? "memory-table ritual"
+        : request.eventType === "anniversary"
+          ? "shared-story toast"
+          : "welcome-note keepsake";
   return [
     `Create a ${theme} that lets guests contribute a small, meaningful detail without slowing the schedule.`,
     `Use ${request.venue} as a planning anchor: frame one arrival moment, one gathering moment, and one quiet reset area.`,
@@ -85,10 +149,21 @@ function ideasFor(request: PlanRequest): string[] {
 }
 
 function risksFor(request: PlanRequest): string[] {
-  const flags = ["Hold at least 12% of the budget as contingency until final vendor balances are confirmed."];
-  if (request.budget / request.guestCount < 45) flags.push("The per-guest budget is lean; prioritize food, safety, and essentials before decorative upgrades.");
-  if (request.accessibility.lowSensoryOption) flags.push("Assign a clearly signed low-sensory reset area and keep the audio escalation contact in the run-of-show.");
-  if (safeDate(request.date).getTime() - Date.now() < 1000 * 60 * 60 * 24 * 30) flags.push("The date is within 30 days; confirm vendor availability and payment due dates immediately.");
+  const flags = [
+    "Hold at least 12% of the budget as contingency until final vendor balances are confirmed.",
+  ];
+  if (request.budget / request.guestCount < 45)
+    flags.push(
+      "The per-guest budget is lean; prioritize food, safety, and essentials before decorative upgrades.",
+    );
+  if (request.accessibility.lowSensoryOption)
+    flags.push(
+      "Assign a clearly signed low-sensory reset area and keep the audio escalation contact in the run-of-show.",
+    );
+  if (safeDate(request.date).getTime() - Date.now() < 1000 * 60 * 60 * 24 * 30)
+    flags.push(
+      "The date is within 30 days; confirm vendor availability and payment due dates immediately.",
+    );
   return flags;
 }
 

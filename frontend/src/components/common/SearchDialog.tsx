@@ -1,8 +1,9 @@
-import { useState, type ReactElement } from "react";
+import { useRef, useState, type ReactElement } from "react";
 import { Link } from "react-router";
 import { MaterialIcon } from "./MaterialIcon.js";
 import { useUiStore } from "../../state/uiStore.js";
 import { loadPlans, type StoredPlan } from "../../state/persistence.js";
+import { useDialogAccessibility } from "./useDialogAccessibility.js";
 
 function SearchResultsList({
   plans,
@@ -49,7 +50,11 @@ function SearchResultsList({
 export function SearchDialog(): ReactElement | null {
   const { isSearchOpen, closeSearch } = useUiStore();
   const [query, setQuery] = useState("");
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
   const plans = loadPlans();
+
+  useDialogAccessibility(isSearchOpen, closeSearch, dialogRef, searchRef);
 
   if (!isSearchOpen) return null;
 
@@ -64,15 +69,20 @@ export function SearchDialog(): ReactElement | null {
       className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-wine-deep/40 backdrop-blur-sm p-4"
       role="dialog"
       aria-modal="true"
-      aria-label="Search studio vault and tools"
+      aria-labelledby="studio-search-title"
+      ref={dialogRef}
+      tabIndex={-1}
     >
       <div className="w-full max-w-xl bg-cream-linen rounded-3xl shadow-2xl p-space-lg flex flex-col gap-space-md border border-wine-accent/10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-space-xs text-wine-accent">
             <MaterialIcon name="search" size={24} />
-            <span className="font-headline-sm text-headline-sm text-wine-deep font-bold">
+            <h2
+              id="studio-search-title"
+              className="font-headline-sm text-headline-sm text-wine-deep font-bold"
+            >
               Studio Search
-            </span>
+            </h2>
           </div>
           <button
             type="button"
@@ -85,7 +95,9 @@ export function SearchDialog(): ReactElement | null {
         </div>
 
         <input
+          ref={searchRef}
           type="search"
+          aria-label="Search celebrations"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);

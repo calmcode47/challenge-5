@@ -1,5 +1,7 @@
 node_modules/
 dist/
 coverage/
+backend/dist/
+backend/coverage/
 frontend/FRONTEND_REPORT.md
 FRONTEND_REPORT.md

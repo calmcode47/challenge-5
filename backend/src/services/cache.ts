@@ -7,7 +7,10 @@ interface CacheEntry<T> {
 export class TtlCache<T> {
   private readonly values = new Map<string, CacheEntry<T>>();
 
-  public constructor(private readonly maxEntries = 100, private readonly ttlMs = 300_000) {}
+  public constructor(
+    private readonly maxEntries = 100,
+    private readonly ttlMs = 300_000,
+  ) {}
 
   public get(key: string): T | undefined {
     const entry = this.values.get(key);
@@ -27,5 +30,9 @@ export class TtlCache<T> {
       if (oldestKey) this.values.delete(oldestKey);
     }
     this.values.set(key, { value, expiresAt: Date.now() + this.ttlMs });
+  }
+
+  public clear(): void {
+    this.values.clear();
   }
 }

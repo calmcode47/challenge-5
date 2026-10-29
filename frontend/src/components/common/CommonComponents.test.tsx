@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
+import { axe } from "vitest-axe";
 import { MaterialIcon } from "./MaterialIcon.js";
 import { DaisySvg } from "./DaisySvg.js";
 import { WavyDivider } from "./WavyDivider.js";
@@ -38,9 +39,9 @@ describe("common components", () => {
     expect(mask).toBeInTheDocument();
   });
 
-  it("renders SearchDialog when open and filters plans", () => {
+  it("renders an accessible SearchDialog, focuses it, filters plans, and closes with Escape", async () => {
     useUiStore.setState({ isSearchOpen: true });
-    render(
+    const { container } = render(
       <MemoryRouter>
         <SearchDialog />
       </MemoryRouter>
@@ -48,14 +49,17 @@ describe("common components", () => {
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     const searchInput = screen.getByPlaceholderText(/search celebrations/i);
+    expect(searchInput).toHaveFocus();
     fireEvent.change(searchInput, { target: { value: "Elena" } });
     expect(screen.getByText(/Elena & Marcus/i)).toBeInTheDocument();
 
     fireEvent.change(searchInput, { target: { value: "NonExistentTermXYZ" } });
     expect(screen.getByText(/No matching celebrations found/i)).toBeInTheDocument();
 
-    const closeBtn = screen.getByLabelText("Close search");
-    fireEvent.click(closeBtn);
+    fireEvent.keyDown(document, { key: "Escape" });
     expect(useUiStore.getState().isSearchOpen).toBe(false);
+    expect(
+      (await axe(container, { rules: { "color-contrast": { enabled: false } } })).violations
+    ).toHaveLength(0);
   });
 });

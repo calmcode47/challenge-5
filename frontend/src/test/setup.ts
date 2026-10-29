@@ -25,3 +25,9 @@ if (typeof window.matchMedia !== "function") {
 if (typeof window.scrollTo !== "function") {
   window.scrollTo = () => undefined;
 }
+
+// axe inspects icon fonts through a canvas; jsdom has no canvas implementation.
+Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
+  configurable: true,
+  value: () => null,
+});

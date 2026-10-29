@@ -1,5 +1,6 @@
-import { useState, type ReactElement, type SyntheticEvent } from "react";
+import { useRef, useState, type ReactElement, type SyntheticEvent } from "react";
 import { MaterialIcon } from "../../components/common/MaterialIcon.js";
+import { useDialogAccessibility } from "../../components/common/useDialogAccessibility.js";
 import { useUiStore } from "../../state/uiStore.js";
 
 /** Props for WorkspaceLogExpenseModal. */
@@ -150,6 +151,10 @@ export function WorkspaceLogExpenseModal({
   isOpen,
   onClose,
 }: WorkspaceLogExpenseModalProps): ReactElement | null {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  useDialogAccessibility(isOpen, onClose, dialogRef, closeButtonRef);
+
   if (!isOpen) return null;
 
   return (
@@ -157,18 +162,24 @@ export function WorkspaceLogExpenseModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-wine-deep/40 backdrop-blur-sm p-4"
       role="dialog"
       aria-modal="true"
-      aria-label="Log Ceramic Expense"
+      aria-labelledby="expense-dialog-title"
+      ref={dialogRef}
+      tabIndex={-1}
     >
       <div className="w-full max-w-md bg-cream-linen rounded-3xl shadow-2xl p-space-lg flex flex-col gap-space-md border border-wine-accent/15">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-space-xs text-wine-accent">
             <MaterialIcon name="payments" size={24} />
-            <h3 className="font-headline-sm text-headline-sm text-wine-deep font-bold">
+            <h2
+              id="expense-dialog-title"
+              className="font-headline-sm text-headline-sm text-wine-deep font-bold"
+            >
               Log Ceramic Expense
-            </h3>
+            </h2>
           </div>
           <button
             type="button"
+            ref={closeButtonRef}
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-cream-surface flex items-center justify-center text-wine-deep hover:bg-blush-petal/40"
             aria-label="Close dialog"

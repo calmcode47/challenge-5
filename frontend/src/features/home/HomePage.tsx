@@ -15,7 +15,7 @@ export function HomePage(): ReactElement {
   return (
     <div className="bg-surface font-body-md text-on-surface antialiased min-h-screen flex flex-col selection:bg-blush-petal selection:text-wine-deep">
       <Header />
-      <main className="w-full pt-20 bg-surface min-h-[calc(100vh-80px)] flex-1">
+      <main id="main-content" className="w-full pt-20 bg-surface min-h-[calc(100vh-80px)] flex-1">
         <div className="flex flex-col w-full">
           <HomeHero />
           <HomeTemplatesSection />

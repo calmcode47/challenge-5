@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
+import { axe } from "vitest-axe";
 import { WorkspacePage } from "./WorkspacePage.js";
 import { WorkspaceBanner } from "./WorkspaceBanner.js";
 import { WorkspaceBudgetRatio } from "./WorkspaceBudgetRatio.js";
@@ -118,11 +119,12 @@ describe("workspace feature components", () => {
     expect(useUiStore.getState().notification?.message).toContain("New RFP dispatch created");
   });
 
-  it("renders WorkspaceLogExpenseModal and submits form", () => {
+  it("renders an accessible WorkspaceLogExpenseModal, contains focus, and submits form", async () => {
     const handleClose = vi.fn();
-    render(<WorkspaceLogExpenseModal isOpen={true} onClose={handleClose} />);
+    const { container } = render(<WorkspaceLogExpenseModal isOpen={true} onClose={handleClose} />);
 
     expect(screen.getByText("Log Ceramic Expense")).toBeInTheDocument();
+    expect(screen.getByLabelText("Close dialog")).toHaveFocus();
     const categorySelect = screen.getByLabelText(/pillar category/i);
     fireEvent.change(categorySelect, { target: { value: "Flora & Decor" } });
 
@@ -135,6 +137,9 @@ describe("workspace feature components", () => {
     const submitBtn = screen.getByText("Record In Escrow");
     fireEvent.click(submitBtn);
     expect(handleClose).toHaveBeenCalledTimes(1);
+    expect(
+      (await axe(container, { rules: { "color-contrast": { enabled: false } } })).violations
+    ).toHaveLength(0);
   });
 
   it("renders WorkspaceTimelineModal and prints schedule", () => {
@@ -145,6 +150,7 @@ describe("workspace feature components", () => {
       <WorkspaceTimelineModal isOpen={true} planTitle="Summer Festival" onClose={handleClose} />
     );
     expect(screen.getByText("Run-of-Show Milestone Schedule")).toBeInTheDocument();
+    expect(screen.getByLabelText("Close schedule")).toHaveFocus();
 
     const printBtn = screen.getByText("Print Run-of-Show");
     fireEvent.click(printBtn);
@@ -153,6 +159,20 @@ describe("workspace feature components", () => {
 
     fireEvent.click(screen.getByText("Done"));
     expect(handleClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("closes both workspace dialogs with Escape", () => {
+    const closeExpense = vi.fn();
+    const { rerender } = render(<WorkspaceLogExpenseModal isOpen={true} onClose={closeExpense} />);
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(closeExpense).toHaveBeenCalledTimes(1);
+
+    const closeTimeline = vi.fn();
+    rerender(
+      <WorkspaceTimelineModal isOpen={true} planTitle="Summer Festival" onClose={closeTimeline} />
+    );
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(closeTimeline).toHaveBeenCalledTimes(1);
   });
 
   it("renders entire WorkspacePage, opens modals, and switches modules", () => {
@@ -184,7 +204,11 @@ describe("workspace feature components", () => {
     fireEvent.click(screen.getByText("Pottery Tables"));
 
     // Export brief
+    const anchorClick = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined);
     fireEvent.click(screen.getByText("Export Brief (.JSON)"));
+    anchorClick.mockRestore();
     expect(useUiStore.getState().notification?.message).toContain("exported as JSON");
 
     // Click search and notifications on workspace header

@@ -48,9 +48,11 @@ The frontend proxies `/api/v1` to `http://127.0.0.1:8787` while developing. Set 
 ## Quality checks
 
 ```bash
-cd backend && npm run typecheck && npm test && npm run build
-cd frontend && npm run typecheck && npm test && npm run build
+cd backend && npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run build
+cd frontend && npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run build
 ```
+
+GitHub Actions applies the same gates on `main` and pull requests. See [the architecture and safeguards](docs/ARCHITECTURE.md) for the security, resilience, and scale boundaries.
 
 ## Deployment
 

@@ -1,26 +1,33 @@
 import { z } from "zod";
 
-export const eventTypeSchema = z.enum(["wedding", "milestone", "community", "anniversary"]);
+export const eventTypeSchema = z.enum([
+  "wedding",
+  "milestone",
+  "community",
+  "anniversary",
+]);
 
 export const planRequestSchema = z.object({
   title: z.string().trim().min(2).max(120),
   eventType: eventTypeSchema,
-  date: z.string().date(),
+  date: z.iso.date(),
   guestCount: z.coerce.number().int().min(2).max(5000),
   budget: z.coerce.number().positive().max(5_000_000),
   venue: z.string().trim().min(2).max(120),
   notes: z.string().trim().max(1500).default(""),
-  accessibility: z.object({
-    stepFreeAccess: z.boolean().default(false),
-    allergenAware: z.boolean().default(false),
-    weatherBackup: z.boolean().default(false),
-    lowSensoryOption: z.boolean().default(false),
-  }).default({
-    stepFreeAccess: false,
-    allergenAware: false,
-    weatherBackup: false,
-    lowSensoryOption: false,
-  }),
+  accessibility: z
+    .object({
+      stepFreeAccess: z.boolean().default(false),
+      allergenAware: z.boolean().default(false),
+      weatherBackup: z.boolean().default(false),
+      lowSensoryOption: z.boolean().default(false),
+    })
+    .default({
+      stepFreeAccess: false,
+      allergenAware: false,
+      weatherBackup: false,
+      lowSensoryOption: false,
+    }),
 });
 
 export type PlanRequest = z.infer<typeof planRequestSchema>;

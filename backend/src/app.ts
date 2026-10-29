@@ -15,7 +15,11 @@ const requestId: RequestHandler = (_request, response, next) => {
 function corsOptions(): cors.CorsOptions {
   return {
     origin(origin, callback) {
-      if (!origin || env.NODE_ENV !== "production" || env.allowedOrigins.includes(origin)) {
+      if (
+        !origin ||
+        env.NODE_ENV !== "production" ||
+        env.allowedOrigins.includes(origin)
+      ) {
         callback(null, true);
         return;
       }
@@ -36,8 +40,12 @@ export function createApp(): express.Express {
   app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
   app.use(cors(corsOptions()));
   app.use(express.json({ limit: "32kb", strict: true }));
-  app.get("/health", (_request, response) => response.status(200).json({ status: "ok", service: "occasio-api" }));
-  app.get("/api/v1/health", (_request, response) => response.status(200).json({ status: "ok", service: "occasio-api" }));
+  app.get("/health", (_request, response) =>
+    response.status(200).json({ status: "ok", service: "occasio-api" }),
+  );
+  app.get("/api/v1/health", (_request, response) =>
+    response.status(200).json({ status: "ok", service: "occasio-api" }),
+  );
   app.post("/api/v1/plans/generate", rateLimit(), generatePlan);
   app.use(notFound);
   app.use(errorHandler);

@@ -25,6 +25,8 @@ function GlobalToast(): ReactElement | null {
   return (
     <aside
       aria-label="Studio Notification"
+      aria-live="polite"
+      role="status"
       className="fixed bottom-6 right-6 z-50 bg-wine-deep text-cream-linen px-space-lg py-space-md rounded-2xl shadow-2xl flex items-center gap-space-sm border border-blush-petal/20 animate-fade-in"
     >
       <MaterialIcon

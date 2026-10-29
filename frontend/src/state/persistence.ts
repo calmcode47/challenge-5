@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 /**
  * Vault persistence layer for local storage sovereign celebration data.
  * Manages client-side storage for celebration plans without external telemetry.
@@ -21,6 +23,27 @@ export interface StoredPlan {
 }
 
 const STORAGE_KEY = "soft_clay_vault_plans_v1";
+
+const storedPlanSchema = z.object({
+  id: z.string().trim().min(1).max(80),
+  title: z.string().trim().min(1).max(160),
+  date: z.iso.date(),
+  guestCount: z.number().int().min(1).max(5000),
+  completionRatio: z.number().min(0).max(1),
+  totalBudget: z.number().nonnegative().max(5_000_000),
+  vertical: z.enum(["wedding", "milestone", "community", "anniversary"]),
+  archetype: z.string().trim().min(1).max(120),
+  venue: z.string().trim().min(1).max(120),
+  sensoryCount: z.number().int().min(0).max(4),
+  tags: z.array(z.string().trim().min(1).max(48)).max(12),
+  description: z.string().trim().min(1).max(1000),
+  imageUrl: z.url().optional(),
+  updatedAt: z.iso.datetime(),
+});
+
+const vaultSchema = z.object({
+  celebrations: z.array(storedPlanSchema).min(1).max(100),
+});
 
 const INITIAL_PLANS: readonly StoredPlan[] = [
   {
@@ -79,23 +102,39 @@ const INITIAL_PLANS: readonly StoredPlan[] = [
   },
 ];
 
+function canUseStorage(): boolean {
+  return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+}
+
+function writePlans(plans: readonly StoredPlan[]): void {
+  if (!canUseStorage()) return;
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(plans));
+  } catch {
+    // Storage can be disabled or quota-limited. The caller retains an in-memory result.
+  }
+}
+
 /**
  * Retrieves all stored celebration plans from client storage.
  */
 export function loadPlans(): StoredPlan[] {
-  if (typeof window === "undefined") {
-    return [...INITIAL_PLANS];
-  }
-  const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_PLANS));
+  if (!canUseStorage()) {
     return [...INITIAL_PLANS];
   }
   try {
-    const parsed = JSON.parse(raw) as unknown;
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed as StoredPlan[];
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      writePlans(INITIAL_PLANS);
+      return [...INITIAL_PLANS];
     }
+    const parsed = z
+      .array(storedPlanSchema)
+      .min(1)
+      .max(100)
+      .safeParse(JSON.parse(raw) as unknown);
+    if (parsed.success) return parsed.data;
+    writePlans(INITIAL_PLANS);
     return [...INITIAL_PLANS];
   } catch {
     return [...INITIAL_PLANS];
@@ -114,36 +153,41 @@ export function getPlanById(id: string): StoredPlan | undefined {
  * Persists a new or updated celebration plan into client storage.
  */
 export function savePlan(plan: StoredPlan): void {
-  if (typeof window === "undefined") return;
+  const validated = storedPlanSchema.safeParse(plan);
+  if (!validated.success) return;
   const current = loadPlans();
-  const existingIdx = current.findIndex((p) => p.id === plan.id);
+  const existingIdx = current.findIndex((p) => p.id === validated.data.id);
   const updated = [...current];
   if (existingIdx >= 0) {
-    updated[existingIdx] = plan;
+    updated[existingIdx] = validated.data;
   } else {
-    updated.unshift(plan);
+    updated.unshift(validated.data);
   }
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  writePlans(updated);
 }
 
 /**
  * Removes a plan by identifier from client storage.
  */
 export function removePlan(id: string): void {
-  if (typeof window === "undefined") return;
   const current = loadPlans();
   const filtered = current.filter((p) => p.id !== id);
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+  writePlans(filtered);
 }
 
 /**
  * Computes storage bytes consumed by celebration plans in client storage.
  */
 export function getStorageUsage(): { bytes: number; formatted: string; percentage: number } {
-  if (typeof window === "undefined") {
+  if (!canUseStorage()) {
     return { bytes: 145408, formatted: "142 KB", percentage: 2.8 };
   }
-  const raw = window.localStorage.getItem(STORAGE_KEY) ?? "";
+  let raw = "";
+  try {
+    raw = window.localStorage.getItem(STORAGE_KEY) ?? "";
+  } catch {
+    return { bytes: 0, formatted: "0 KB", percentage: 0 };
+  }
   const bytes = new Blob([raw]).size;
   const kb = Math.max(1, Math.round(bytes / 1024));
   const maxKb = 5120;
@@ -174,17 +218,16 @@ export function exportVaultJson(): string {
  * Restores or merges plans from an imported JSON vault file.
  */
 export function importVaultJson(rawJson: string): number {
-  if (typeof window === "undefined") return 0;
   try {
-    const data = JSON.parse(rawJson) as { celebrations?: StoredPlan[] };
-    if (!Array.isArray(data.celebrations)) return 0;
+    const parsed = vaultSchema.safeParse(JSON.parse(rawJson) as unknown);
+    if (!parsed.success) return 0;
     const existing = loadPlans();
     const map = new Map<string, StoredPlan>();
     for (const p of existing) map.set(p.id, p);
-    for (const p of data.celebrations) map.set(p.id, p);
+    for (const p of parsed.data.celebrations) map.set(p.id, p);
     const merged = Array.from(map.values());
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
-    return data.celebrations.length;
+    writePlans(merged);
+    return parsed.data.celebrations.length;
   } catch {
     return 0;
   }
@@ -194,6 +237,5 @@ export function importVaultJson(rawJson: string): number {
  * Resets local celebration vault storage back to initial sample state.
  */
 export function resetVault(): void {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_PLANS));
+  writePlans(INITIAL_PLANS);
 }

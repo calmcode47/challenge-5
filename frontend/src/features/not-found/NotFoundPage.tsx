@@ -11,7 +11,10 @@ export function NotFoundPage(): ReactElement {
   return (
     <div className="bg-surface font-body-md text-on-surface antialiased min-h-screen flex flex-col">
       <Header />
-      <main className="w-full pt-28 pb-16 flex-1 flex flex-col items-center justify-center text-center px-4">
+      <main
+        id="main-content"
+        className="w-full pt-28 pb-16 flex-1 flex flex-col items-center justify-center text-center px-4"
+      >
         <div className="w-20 h-20 rounded-full bg-blush-petal/40 flex items-center justify-center text-wine-accent mb-space-md">
           <MaterialIcon name="explore_off" size={40} />
         </div>

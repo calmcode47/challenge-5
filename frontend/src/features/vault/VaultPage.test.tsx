@@ -50,7 +50,11 @@ describe("vault feature components", () => {
 
     expect(screen.getByText("My Saved Celebrations & Clay Vault")).toBeInTheDocument();
     const exportBtn = screen.getByText("Export Vault (.JSON)");
+    const anchorClick = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined);
     fireEvent.click(exportBtn);
+    anchorClick.mockRestore();
     expect(useUiStore.getState().notification?.message).toContain(
       "Artisanal Vault (.JSON) snapshot"
     );

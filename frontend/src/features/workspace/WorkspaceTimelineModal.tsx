@@ -1,5 +1,6 @@
-import type { ReactElement } from "react";
+import { useRef, type ReactElement, type RefObject } from "react";
 import { MaterialIcon } from "../../components/common/MaterialIcon.js";
+import { useDialogAccessibility } from "../../components/common/useDialogAccessibility.js";
 
 /** Props for WorkspaceTimelineModal. */
 export interface WorkspaceTimelineModalProps {
@@ -12,6 +13,42 @@ interface MilestoneItem {
   time: string;
   title: string;
   cue: string;
+}
+
+function TimelineDialogHeader({
+  planTitle,
+  closeButtonRef,
+  onClose,
+}: {
+  planTitle: string;
+  closeButtonRef: RefObject<HTMLButtonElement | null>;
+  onClose: () => void;
+}): ReactElement {
+  return (
+    <div className="flex items-center justify-between border-b border-wine-accent/10 pb-space-xs">
+      <div className="flex items-center gap-space-xs text-wine-accent">
+        <MaterialIcon name="schedule" size={24} />
+        <div>
+          <h2
+            id="timeline-dialog-title"
+            className="font-headline-sm text-headline-sm text-wine-deep font-bold"
+          >
+            Run-of-Show Milestone Schedule
+          </h2>
+          <span className="font-body-sm text-body-sm text-text-muted">{planTitle}</span>
+        </div>
+      </div>
+      <button
+        type="button"
+        ref={closeButtonRef}
+        onClick={onClose}
+        className="w-8 h-8 rounded-full bg-cream-surface flex items-center justify-center text-wine-deep hover:bg-blush-petal/40"
+        aria-label="Close schedule"
+      >
+        <MaterialIcon name="close" size={18} />
+      </button>
+    </div>
+  );
 }
 
 const MILESTONES: MilestoneItem[] = [
@@ -69,6 +106,10 @@ export function WorkspaceTimelineModal({
   planTitle,
   onClose,
 }: WorkspaceTimelineModalProps): ReactElement | null {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  useDialogAccessibility(isOpen, onClose, dialogRef, closeButtonRef);
+
   if (!isOpen) return null;
 
   return (
@@ -76,28 +117,16 @@ export function WorkspaceTimelineModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-wine-deep/40 backdrop-blur-sm p-4"
       role="dialog"
       aria-modal="true"
-      aria-label="Run-of-Show Timeline"
+      aria-labelledby="timeline-dialog-title"
+      ref={dialogRef}
+      tabIndex={-1}
     >
       <div className="w-full max-w-xl bg-cream-linen rounded-3xl shadow-2xl p-space-lg flex flex-col gap-space-md border border-wine-accent/15 max-h-[85vh] overflow-y-auto">
-        <div className="flex items-center justify-between border-b border-wine-accent/10 pb-space-xs">
-          <div className="flex items-center gap-space-xs text-wine-accent">
-            <MaterialIcon name="schedule" size={24} />
-            <div>
-              <h3 className="font-headline-sm text-headline-sm text-wine-deep font-bold">
-                Run-of-Show Milestone Schedule
-              </h3>
-              <span className="font-body-sm text-body-sm text-text-muted">{planTitle}</span>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-cream-surface flex items-center justify-center text-wine-deep hover:bg-blush-petal/40"
-            aria-label="Close schedule"
-          >
-            <MaterialIcon name="close" size={18} />
-          </button>
-        </div>
+        <TimelineDialogHeader
+          planTitle={planTitle}
+          closeButtonRef={closeButtonRef}
+          onClose={onClose}
+        />
 
         <MilestoneList />
 

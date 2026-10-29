@@ -95,7 +95,10 @@ export function WorkspacePage(): ReactElement {
       />
       <div className="pl-64">
         <WorkspaceHeader planTitle={plan.title} />
-        <main className="relative pt-16 bg-surface min-h-screen px-space-lg py-space-lg">
+        <main
+          id="main-content"
+          className="relative pt-16 bg-surface min-h-screen px-space-lg py-space-lg"
+        >
           <WorkspaceMainContent
             plan={plan}
             onLogExpense={() => {

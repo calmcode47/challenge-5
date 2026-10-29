@@ -100,6 +100,9 @@ function HeaderActions(): ReactElement {
 export function Header(): ReactElement {
   return (
     <header className="fixed top-0 w-full z-50 bg-cream-linen/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(122,40,50,0.06)]">
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
       <div className="h-20 max-w-7xl mx-auto px-gutter flex items-center justify-between gap-space-md">
         <HeaderBrand />
         <HeaderNav />
