@@ -42,6 +42,11 @@ function PlanCardProgress({ pct }: { pct: number }): ReactElement {
         <div
           className="h-full bg-wine-accent rounded-full transition-all"
           style={{ width: `${String(pct)}%` }}
+          role="progressbar"
+          aria-label="Planning progress"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={pct}
         />
       </div>
     </div>

@@ -10,13 +10,13 @@ import { WorkspaceDualPassBlock } from "./WorkspaceDualPassBlock.js";
 import { WorkspaceSafeguardsBlock } from "./WorkspaceSafeguardsBlock.js";
 import { WorkspaceLogExpenseModal } from "./WorkspaceLogExpenseModal.js";
 import { WorkspaceTimelineModal } from "./WorkspaceTimelineModal.js";
-import { getPlanById, loadPlans, type StoredPlan } from "../../state/persistence.js";
+import { getPlanById, loadPlans, savePlan, type StoredPlan } from "../../state/persistence.js";
 import { useUiStore } from "../../state/uiStore.js";
 
 const DEFAULT_FALLBACK_PLAN: StoredPlan = {
   id: "cl-001",
   title: "Elena & Marcus Blossom Wedding",
-  date: "2025-10-18",
+  date: "2027-10-18",
   guestCount: 120,
   completionRatio: 0.68,
   totalBudget: 24000,
@@ -26,7 +26,7 @@ const DEFAULT_FALLBACK_PLAN: StoredPlan = {
   sensoryCount: 4,
   tags: ["Hand-Formed", "Live Music"],
   description: "Terracotta & wild cosmos palette, open-air pergola banquet.",
-  updatedAt: "2025-09-01T00:00:00.000Z",
+  updatedAt: "2026-09-01T00:00:00.000Z",
 };
 
 function exportPlanAsJson(plan: StoredPlan): void {
@@ -56,13 +56,54 @@ function WorkspaceMainContent(props: MainContentProps): ReactElement {
         onExportBrief={props.onExportBrief}
         onRunOfShow={props.onRunOfShow}
       />
-      <WorkspaceBudgetRatio />
+      <WorkspaceBudgetRatio plan={props.plan} />
       <WorkspacePillarsGrid />
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
         <WorkspaceDualPassBlock />
         <WorkspaceSafeguardsBlock />
       </div>
     </div>
+  );
+}
+
+interface WorkspaceDialogsProps {
+  readonly plan: StoredPlan;
+  readonly isLogExpenseOpen: boolean;
+  readonly isTimelineOpen: boolean;
+  readonly onCloseExpense: () => void;
+  readonly onCloseTimeline: () => void;
+}
+
+function WorkspaceDialogs({
+  plan,
+  isLogExpenseOpen,
+  isTimelineOpen,
+  onCloseExpense,
+  onCloseTimeline,
+}: WorkspaceDialogsProps): ReactElement {
+  return (
+    <>
+      <WorkspaceLogExpenseModal
+        isOpen={isLogExpenseOpen}
+        categories={plan.budgetAllocation?.map((allocation) => allocation.category)}
+        onRecordExpense={(expense) => {
+          savePlan({
+            ...plan,
+            expenses: [
+              ...(plan.expenses ?? []),
+              { ...expense, id: crypto.randomUUID(), recordedAt: new Date().toISOString() },
+            ],
+            updatedAt: new Date().toISOString(),
+          });
+        }}
+        onClose={onCloseExpense}
+      />
+      <WorkspaceTimelineModal
+        isOpen={isTimelineOpen}
+        planTitle={plan.title}
+        onClose={onCloseTimeline}
+      />
+    </>
   );
 }
 
@@ -112,16 +153,14 @@ export function WorkspacePage(): ReactElement {
         </main>
       </div>
 
-      <WorkspaceLogExpenseModal
-        isOpen={isLogExpenseOpen}
-        onClose={() => {
+      <WorkspaceDialogs
+        plan={plan}
+        isLogExpenseOpen={isLogExpenseOpen}
+        isTimelineOpen={isTimelineOpen}
+        onCloseExpense={() => {
           setIsLogExpenseOpen(false);
         }}
-      />
-      <WorkspaceTimelineModal
-        isOpen={isTimelineOpen}
-        planTitle={plan.title}
-        onClose={() => {
+        onCloseTimeline={() => {
           setIsTimelineOpen(false);
         }}
       />

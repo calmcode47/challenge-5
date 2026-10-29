@@ -9,7 +9,12 @@ import { WizardCoordinatesStep } from "./WizardCoordinatesStep.js";
 import { WizardBudgetStep } from "./WizardBudgetStep.js";
 import { WizardSensoryStep } from "./WizardSensoryStep.js";
 import { WizardTicketSidebar } from "./WizardTicketSidebar.js";
-import type { WizardFormState, WizardVertical, WizardVenue } from "./wizardTypes.js";
+import {
+  defaultEventDate,
+  type WizardFormState,
+  type WizardVertical,
+  type WizardVenue,
+} from "./wizardTypes.js";
 import { savePlan, type StoredPlan } from "../../state/persistence.js";
 import { useUiStore, type UiState } from "../../state/uiStore.js";
 import { generatePlan, type GeneratedPlan } from "../../services/plansApi.js";
@@ -96,7 +101,7 @@ function buildStoredPlan(
   return {
     id,
     title: formState.title || "Custom Gathering",
-    date: formState.date || new Date().toISOString().slice(0, 10),
+    date: formState.date || defaultEventDate(),
     guestCount: formState.guestCount,
     completionRatio: 0.1,
     totalBudget: formState.budgetTotal,
@@ -108,6 +113,10 @@ function buildStoredPlan(
     description:
       generated?.personalizedIdeas[0] ??
       `Sculpted blueprint for ${String(formState.guestCount)} guests with a protected contingency ledger.`,
+    budgetAllocation: generated?.budgetAllocation,
+    vendorChecklist: generated?.vendorChecklist,
+    riskFlags: generated?.riskFlags,
+    expenses: [],
     updatedAt: new Date().toISOString(),
   };
 }
@@ -158,7 +167,7 @@ export function WizardPage(): ReactElement {
   const [formState, setFormState] = useState<WizardFormState>({
     vertical: getInitialVertical(searchParams.get("vertical")),
     title: "Elena & Marcus Blossom Gathering",
-    date: "2025-09-19",
+    date: defaultEventDate(),
     venue: "Botanical Orchard",
     budgetTotal: 24000,
     guestCount: Number(searchParams.get("guests")) || 120,

@@ -14,3 +14,10 @@ export interface WizardFormState {
   sensoryPavilion: boolean;
   sensoryAcoustic: boolean;
 }
+
+/** Returns a stable ISO date safely ahead of today for a new planning brief. */
+export function defaultEventDate(now = new Date()): string {
+  const date = new Date(now);
+  date.setDate(date.getDate() + 90);
+  return date.toISOString().slice(0, 10);
+}

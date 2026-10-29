@@ -1,67 +1,151 @@
 import type { ReactElement } from "react";
 import { MaterialIcon } from "../../components/common/MaterialIcon.js";
+import type { BudgetAllocation, StoredPlan } from "../../state/persistence.js";
 
-/**
- * Stoneware Capital Ledger multi-segmented allocation ratio bar component.
- */
-export function WorkspaceBudgetRatio(): ReactElement {
+const BAR_COLORS = [
+  "bg-wine-accent",
+  "bg-sage-earth",
+  "bg-blush-deep",
+  "bg-butter-sun",
+  "bg-secondary",
+  "bg-primary-fixed-dim",
+];
+
+const DEFAULT_SPLITS: readonly BudgetAllocation[] = [
+  { category: "Venue & rentals", amount: 0, percent: 26 },
+  { category: "Food & beverage", amount: 0, percent: 28 },
+  { category: "Design & florals", amount: 0, percent: 10 },
+  { category: "Photography & entertainment", amount: 0, percent: 12 },
+  { category: "Stationery & guest care", amount: 0, percent: 5 },
+  { category: "Contingency", amount: 0, percent: 19 },
+];
+
+function paletteColor(index: number): string {
+  return BAR_COLORS[index % BAR_COLORS.length] ?? "bg-wine-accent";
+}
+
+function allocationFor(plan?: StoredPlan): readonly BudgetAllocation[] {
+  if (plan?.budgetAllocation?.length) return plan.budgetAllocation;
+  const budget = plan?.totalBudget ?? 24_000;
+  return DEFAULT_SPLITS.map((item) => ({
+    ...item,
+    amount: Math.round((budget * item.percent) / 100),
+  }));
+}
+
+function currency(value: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function LedgerHeader({
+  allocationCount,
+  committedPercent,
+  isOverBudget,
+}: {
+  allocationCount: number;
+  committedPercent: number;
+  isOverBudget: boolean;
+}): ReactElement {
   return (
-    <section className="bg-cream-linen rounded-3xl p-space-lg shadow-sm">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-md mb-space-sm">
-        <div className="flex items-center gap-space-sm">
-          <div className="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-wine-accent">
-            <MaterialIcon name="pie_chart" size={18} />
-          </div>
-          <div>
-            <h2 className="font-title-md text-title-md text-text-primary font-bold">
-              Stoneware Capital Ledger
-            </h2>
-            <p className="font-body-sm text-body-sm text-text-muted">
-              Allocated funds locked across 6 distinct craft disciplines
-            </p>
-          </div>
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-md mb-space-sm">
+      <div className="flex items-center gap-space-sm">
+        <div className="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-wine-accent">
+          <MaterialIcon name="pie_chart" size={18} />
         </div>
-        <div className="flex items-center gap-space-xs bg-surface-container-high px-space-md py-space-xs rounded-full">
-          <span className="font-label-md text-label-md text-secondary font-medium">
-            Committed Capacity:
-          </span>
-          <span className="font-headline-sm text-headline-sm text-wine-deep font-bold">57.08%</span>
+        <div>
+          <h2
+            id="budget-ledger-title"
+            className="font-title-md text-title-md text-text-primary font-bold"
+          >
+            Stoneware Capital Ledger
+          </h2>
+          <p className="font-body-sm text-body-sm text-text-muted">
+            Generated allocation across {String(allocationCount)} planning envelopes
+          </p>
         </div>
       </div>
-
-      <div className="w-full h-4 rounded-full bg-surface-container-high overflow-hidden flex shadow-inner">
-        <div className="h-full bg-wine-accent" style={{ width: "48%" }} title="Venue: 48%" />
-        <div className="h-full bg-sage-earth" style={{ width: "15%" }} title="Photo & Film: 15%" />
-        <div className="h-full bg-blush-deep" style={{ width: "12%" }} title="Flora: 12%" />
-        <div className="h-full bg-butter-sun" style={{ width: "9%" }} title="Acoustic: 9%" />
-        <div className="h-full bg-secondary" style={{ width: "8%" }} title="Weather: 8%" />
-        <div
-          className="h-full bg-primary-fixed-dim"
-          style={{ width: "8%" }}
-          title="Stationery: 8%"
-        />
+      <div className="flex items-center gap-space-xs bg-surface-container-high px-space-md py-space-xs rounded-full">
+        <span className="font-label-md text-label-md text-secondary font-medium">
+          Committed Capacity:
+        </span>
+        <span
+          className={`font-headline-sm text-headline-sm font-bold ${isOverBudget ? "text-error" : "text-wine-deep"}`}
+        >
+          {String(committedPercent)}%
+        </span>
       </div>
+    </div>
+  );
+}
 
+function AllocationVisual({
+  allocations,
+  budget,
+}: {
+  allocations: readonly BudgetAllocation[];
+  budget: number;
+}): ReactElement {
+  return (
+    <>
+      <div
+        className="w-full h-4 rounded-full bg-surface-container-high overflow-hidden flex shadow-inner"
+        role="img"
+        aria-label={`Budget allocation totaling ${currency(budget)}`}
+      >
+        {allocations.map((allocation, index) => (
+          <div
+            key={allocation.category}
+            className={`h-full ${paletteColor(index)}`}
+            style={{ width: `${String(allocation.percent)}%` }}
+            title={`${allocation.category}: ${String(allocation.percent)}%`}
+          />
+        ))}
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-space-xs mt-space-sm text-text-muted font-label-sm text-label-sm">
-        <span className="flex items-center gap-1.5 font-medium">
-          <span className="w-2.5 h-2.5 rounded-full bg-wine-accent" /> Venue &amp; Dining ($11.5k)
-        </span>
-        <span className="flex items-center gap-1.5 font-medium">
-          <span className="w-2.5 h-2.5 rounded-full bg-sage-earth" /> Photo &amp; Film ($3.6k)
-        </span>
-        <span className="flex items-center gap-1.5 font-medium">
-          <span className="w-2.5 h-2.5 rounded-full bg-blush-deep" /> Flora ($2.8k)
-        </span>
-        <span className="flex items-center gap-1.5 font-medium">
-          <span className="w-2.5 h-2.5 rounded-full bg-butter-sun" /> Acoustic Brass ($2.2k)
-        </span>
-        <span className="flex items-center gap-1.5 font-medium">
-          <span className="w-2.5 h-2.5 rounded-full bg-secondary" /> Weather Contingency ($1.9k)
-        </span>
-        <span className="flex items-center gap-1.5 font-medium">
-          <span className="w-2.5 h-2.5 rounded-full bg-primary-fixed-dim" /> Stationery ($2.0k)
-        </span>
+        {allocations.map((allocation, index) => (
+          <span key={allocation.category} className="flex items-center gap-1.5 font-medium">
+            <span
+              className={`w-2.5 h-2.5 rounded-full ${paletteColor(index)}`}
+              aria-hidden="true"
+            />
+            {allocation.category} ({currency(allocation.amount)})
+          </span>
+        ))}
       </div>
+    </>
+  );
+}
+
+/** Displays the generated allocation and any locally recorded commitments for this plan. */
+export function WorkspaceBudgetRatio({ plan }: { readonly plan?: StoredPlan }): ReactElement {
+  const allocations = allocationFor(plan);
+  const budget = plan?.totalBudget ?? 24_000;
+  const committed = (plan?.expenses ?? []).reduce((total, expense) => total + expense.amount, 0);
+  const committedPercent = Math.min(100, Math.round((committed / budget) * 100));
+  const isOverBudget = committed > budget;
+
+  return (
+    <section
+      className="bg-cream-linen rounded-3xl p-space-lg shadow-sm"
+      aria-labelledby="budget-ledger-title"
+    >
+      <LedgerHeader
+        allocationCount={allocations.length}
+        committedPercent={committedPercent}
+        isOverBudget={isOverBudget}
+      />
+      <AllocationVisual allocations={allocations} budget={budget} />
+      <p
+        className={`mt-space-sm font-body-sm text-body-sm ${isOverBudget ? "text-error" : "text-text-muted"}`}
+      >
+        {isOverBudget
+          ? `${currency(committed - budget)} above the total budget. Revisit commitments before approving another vendor.`
+          : `${currency(budget - committed)} remains uncommitted across the plan.`}
+      </p>
     </section>
   );
 }

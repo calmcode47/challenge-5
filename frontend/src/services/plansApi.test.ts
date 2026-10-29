@@ -24,6 +24,18 @@ const generated = {
     guestCount: form.guestCount,
     budget: form.budgetTotal,
     venue: form.venue,
+    budgetAllocation: [
+      { category: "Venue & rentals", amount: 4680, percent: 26 },
+      { category: "Food & beverage", amount: 5040, percent: 28 },
+    ],
+    timeline: [
+      {
+        phase: "Foundation",
+        due: "2026-08-18",
+        task: "Confirm venue terms and access route.",
+        owner: "Planner",
+      },
+    ],
     personalizedIdeas: ["Welcome guests with a handwritten note."],
     vendorChecklist: ["Verify liability insurance."],
     riskFlags: ["Keep contingency available."],

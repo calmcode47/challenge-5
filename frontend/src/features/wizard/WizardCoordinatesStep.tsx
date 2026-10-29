@@ -1,4 +1,4 @@
-import type { ReactElement } from "react";
+import { type KeyboardEvent, type ReactElement } from "react";
 import { MaterialIcon } from "../../components/common/MaterialIcon.js";
 import type { WizardVenue } from "./wizardTypes.js";
 
@@ -39,6 +39,31 @@ const VENUES: VenueOption[] = [
     icon: "filter_vintage",
   },
 ];
+
+function selectRelativeVenue(
+  current: WizardVenue,
+  direction: 1 | -1,
+  onVenueChange: (venue: WizardVenue) => void
+): void {
+  const currentIndex = VENUES.findIndex((option) => option.id === current);
+  const nextIndex = (currentIndex + direction + VENUES.length) % VENUES.length;
+  const next = VENUES[nextIndex];
+  if (next) onVenueChange(next.id);
+}
+
+function handleVenueKeyDown(
+  event: KeyboardEvent<HTMLButtonElement>,
+  current: WizardVenue,
+  onVenueChange: (venue: WizardVenue) => void
+): void {
+  if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+    event.preventDefault();
+    selectRelativeVenue(current, 1, onVenueChange);
+  } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+    event.preventDefault();
+    selectRelativeVenue(current, -1, onVenueChange);
+  }
+}
 
 function TitleInputField({
   title,
@@ -98,12 +123,13 @@ function DateInputField({
         </span>
         <input
           id="event-date-input"
-          type="text"
+          type="date"
+          min={new Date().toISOString().slice(0, 10)}
           value={date}
           onChange={(e) => {
             onDateChange(e.target.value);
           }}
-          placeholder="e.g., September 19, 2025"
+          placeholder="e.g., September 19, 2027"
           className="w-full pl-10 pr-4 py-3 rounded-xl bg-cream-linen text-text-primary font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-wine-accent/40 shadow-inner"
         />
       </div>
@@ -158,6 +184,10 @@ function VenueSelector({
               type="button"
               role="radio"
               aria-checked={isChecked}
+              tabIndex={isChecked ? 0 : -1}
+              onKeyDown={(event) => {
+                handleVenueKeyDown(event, v.id, onVenueChange);
+              }}
               onClick={() => {
                 onVenueChange(v.id);
               }}

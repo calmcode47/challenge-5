@@ -81,6 +81,7 @@ function BannerMetricTile(props: BannerMetricTileProps): ReactElement {
 }
 
 function BannerMetrics({ plan }: { plan: StoredPlan }): ReactElement {
+  const spent = (plan.expenses ?? []).reduce((total, expense) => total + expense.amount, 0);
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-sm pt-space-xs">
       <BannerMetricTile
@@ -104,7 +105,7 @@ function BannerMetrics({ plan }: { plan: StoredPlan }): ReactElement {
         label="Cap vs Spent"
         value={
           <>
-            $13,700{" "}
+            ${spent.toLocaleString("en-US", { maximumFractionDigits: 0 })}{" "}
             <span className="font-body-sm text-body-sm text-cream-linen/60 font-normal">
               / ${plan.totalBudget.toLocaleString("en-US")}
             </span>

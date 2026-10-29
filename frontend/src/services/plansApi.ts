@@ -4,6 +4,19 @@ import { apiBaseUrl } from "./apiConfig.js";
 
 const eventTypeSchema = z.enum(["wedding", "milestone", "community", "anniversary"]);
 
+const allocationSchema = z.object({
+  category: z.string().min(1),
+  amount: z.number().nonnegative(),
+  percent: z.number().nonnegative(),
+});
+
+const timelineTaskSchema = z.object({
+  phase: z.string().min(1),
+  due: z.string(),
+  task: z.string().min(1),
+  owner: z.string().min(1),
+});
+
 const generatedPlanSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -12,6 +25,8 @@ const generatedPlanSchema = z.object({
   guestCount: z.number(),
   budget: z.number(),
   venue: z.string(),
+  budgetAllocation: z.array(allocationSchema).min(1),
+  timeline: z.array(timelineTaskSchema).min(1),
   personalizedIdeas: z.array(z.string()),
   vendorChecklist: z.array(z.string()),
   riskFlags: z.array(z.string()),

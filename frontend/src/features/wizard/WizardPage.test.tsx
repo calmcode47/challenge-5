@@ -49,6 +49,11 @@ describe("wizard feature components", () => {
     const venueBtn = screen.getByText("Botanical Orchard");
     fireEvent.click(venueBtn);
     expect(handleVenue).toHaveBeenCalledWith("Botanical Orchard");
+
+    fireEvent.keyDown(venueBtn, { key: "ArrowRight" });
+    expect(handleVenue).toHaveBeenCalledWith("Ceramic Loft");
+    fireEvent.keyDown(venueBtn, { key: "ArrowLeft" });
+    expect(handleVenue).toHaveBeenCalledWith("Wildflower Meadow");
   });
 
   it("renders WizardBudgetStep and adjusts budget and guest counts", () => {

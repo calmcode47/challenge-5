@@ -19,7 +19,7 @@ export function HomeManifestoCard(): ReactElement {
               Studio Manifesto
             </span>
           </div>
-          <span className="font-label-sm text-label-sm text-secondary">Edition 2025</span>
+          <span className="font-label-sm text-label-sm text-secondary">Edition 2026</span>
         </div>
         <p className="font-body-sm text-body-sm text-center text-text-muted mt-space-sm px-space-xs italic">
           &ldquo;We believe gatherings are best experienced when every detail feels shaped by loving

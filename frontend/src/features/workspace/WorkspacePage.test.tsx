@@ -69,6 +69,30 @@ describe("workspace feature components", () => {
     expect(screen.getByText("Photo & Film")).toBeInTheDocument();
   });
 
+  it("renders generated allocations and warns when recorded commitments exceed the budget", () => {
+    render(
+      <WorkspaceBudgetRatio
+        plan={{
+          ...mockPlan,
+          totalBudget: 100,
+          budgetAllocation: [{ category: "Venue & rentals", amount: 100, percent: 100 }],
+          expenses: [
+            {
+              id: "expense-1",
+              category: "Venue & rentals",
+              amount: 125,
+              vendor: "Test venue",
+              recordedAt: new Date().toISOString(),
+            },
+          ],
+        }}
+      />
+    );
+
+    expect(screen.getByText("Venue & rentals ($100)")).toBeInTheDocument();
+    expect(screen.getByText(/above the total budget/i)).toBeInTheDocument();
+  });
+
   it("renders WorkspaceDualPassBlock, changes prompt, and commits a concept", () => {
     vi.useFakeTimers();
     render(<WorkspaceDualPassBlock />);
@@ -140,6 +164,28 @@ describe("workspace feature components", () => {
     expect(
       (await axe(container, { rules: { "color-contrast": { enabled: false } } })).violations
     ).toHaveLength(0);
+  });
+
+  it("records a validated expense payload for the active plan", () => {
+    const onRecordExpense = vi.fn();
+    render(
+      <WorkspaceLogExpenseModal
+        isOpen={true}
+        onClose={vi.fn()}
+        categories={["Venue & rentals"]}
+        onRecordExpense={onRecordExpense}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText(/amount/i), { target: { value: "250.50" } });
+    fireEvent.change(screen.getByLabelText(/artisan/i), { target: { value: "Orchard Studio" } });
+    fireEvent.click(screen.getByText("Record In Escrow"));
+
+    expect(onRecordExpense).toHaveBeenCalledWith({
+      category: "Venue & rentals",
+      amount: 250.5,
+      vendor: "Orchard Studio",
+    });
   });
 
   it("renders WorkspaceTimelineModal and prints schedule", () => {

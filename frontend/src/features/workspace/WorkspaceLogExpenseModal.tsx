@@ -7,11 +7,20 @@ import { useUiStore } from "../../state/uiStore.js";
 export interface WorkspaceLogExpenseModalProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
+  readonly categories?: readonly string[];
+  readonly onRecordExpense?: (expense: ExpenseDraft) => void;
+}
+
+export interface ExpenseDraft {
+  readonly category: string;
+  readonly amount: number;
+  readonly vendor: string;
 }
 
 interface FormFieldsProps {
   category: string;
   setCategory: (v: string) => void;
+  categories: readonly string[];
   amount: string;
   setAmount: (v: string) => void;
   vendor: string;
@@ -21,9 +30,11 @@ interface FormFieldsProps {
 function CategorySelectField({
   category,
   setCategory,
+  categories,
 }: {
   category: string;
   setCategory: (v: string) => void;
+  categories: readonly string[];
 }): ReactElement {
   return (
     <div className="flex flex-col gap-1">
@@ -41,12 +52,11 @@ function CategorySelectField({
         }}
         className="w-full px-space-md py-space-xs rounded-xl bg-cream-surface text-wine-deep font-body-md text-body-md shadow-inner outline-none focus:ring-2 focus:ring-wine-accent/30"
       >
-        <option value="Venue & Dining">Venue &amp; Dining</option>
-        <option value="Photo & Film">Photo &amp; Film</option>
-        <option value="Flora & Decor">Flora &amp; Decor</option>
-        <option value="Acoustic & Folk">Acoustic &amp; Folk</option>
-        <option value="Awning Shield">Awning Shield</option>
-        <option value="Clay Stationery">Clay Stationery</option>
+        {categories.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
       </select>
     </div>
   );
@@ -55,6 +65,7 @@ function CategorySelectField({
 function ExpenseFormFields({
   category,
   setCategory,
+  categories,
   amount,
   setAmount,
   vendor,
@@ -62,7 +73,7 @@ function ExpenseFormFields({
 }: FormFieldsProps): ReactElement {
   return (
     <>
-      <CategorySelectField category={category} setCategory={setCategory} />
+      <CategorySelectField category={category} setCategory={setCategory} categories={categories} />
 
       <div className="flex flex-col gap-1">
         <label
@@ -73,7 +84,11 @@ function ExpenseFormFields({
         </label>
         <input
           id="expense-amount"
-          type="text"
+          type="number"
+          min="0.01"
+          step="0.01"
+          inputMode="decimal"
+          required
           value={amount}
           onChange={(e) => {
             setAmount(e.target.value);
@@ -92,6 +107,8 @@ function ExpenseFormFields({
         <input
           id="expense-vendor"
           type="text"
+          required
+          maxLength={120}
           value={vendor}
           onChange={(e) => {
             setVendor(e.target.value);
@@ -103,15 +120,29 @@ function ExpenseFormFields({
   );
 }
 
-function LogExpenseForm({ onClose }: { onClose: () => void }): ReactElement {
+function LogExpenseForm({
+  categories,
+  onClose,
+  onRecordExpense,
+}: {
+  categories: readonly string[];
+  onClose: () => void;
+  onRecordExpense?: (expense: ExpenseDraft) => void;
+}): ReactElement {
   const { showNotification } = useUiStore();
-  const [category, setCategory] = useState("Venue & Dining");
-  const [amount, setAmount] = useState("350.00");
-  const [vendor, setVendor] = useState("Orchard Slipware Kiln");
+  const [category, setCategory] = useState(categories[0] ?? "General");
+  const [amount, setAmount] = useState("");
+  const [vendor, setVendor] = useState("");
 
   const handleSubmit = (e: SyntheticEvent): void => {
     e.preventDefault();
-    showNotification(`Recorded $${amount} to ${category} (${vendor}).`, "success");
+    const numericAmount = Number(amount);
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0 || !vendor.trim()) return;
+    onRecordExpense?.({ category, amount: numericAmount, vendor: vendor.trim() });
+    showNotification(
+      `Recorded $${numericAmount.toFixed(2)} to ${category} (${vendor.trim()}).`,
+      "success"
+    );
     onClose();
   };
 
@@ -120,6 +151,7 @@ function LogExpenseForm({ onClose }: { onClose: () => void }): ReactElement {
       <ExpenseFormFields
         category={category}
         setCategory={setCategory}
+        categories={categories}
         amount={amount}
         setAmount={setAmount}
         vendor={vendor}
@@ -150,6 +182,8 @@ function LogExpenseForm({ onClose }: { onClose: () => void }): ReactElement {
 export function WorkspaceLogExpenseModal({
   isOpen,
   onClose,
+  categories = ["Venue & rentals", "Food & beverage", "Design & florals", "Contingency"],
+  onRecordExpense,
 }: WorkspaceLogExpenseModalProps): ReactElement | null {
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -187,7 +221,11 @@ export function WorkspaceLogExpenseModal({
             <MaterialIcon name="close" size={18} />
           </button>
         </div>
-        <LogExpenseForm onClose={onClose} />
+        <LogExpenseForm
+          categories={categories}
+          onClose={onClose}
+          onRecordExpense={onRecordExpense}
+        />
       </div>
     </div>
   );

@@ -22,6 +22,7 @@ export function resetPlanCacheForTesting(): void {
 /** Creates a usable, structured event plan with optional Gemini enrichment. */
 export const generatePlan: RequestHandler = async (request, response, next) => {
   try {
+    response.setHeader("Cache-Control", "no-store, private");
     const raw = planRequestSchema.parse(request.body);
     const notes = normalizeUserText(raw.notes);
     if (isUnsafePrompt(notes)) {
