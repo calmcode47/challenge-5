@@ -42,6 +42,7 @@ function MajorBudgetInput({
           type="number"
           step={500}
           min={1000}
+          max={5_000_000}
           value={budgetTotal}
           onChange={(e) => {
             onBudgetChange(Math.max(1000, Number(e.target.value) || 0));
@@ -78,11 +79,11 @@ function GuestCountInput({
       <input
         id="guest-count-input"
         type="number"
-        min={1}
-        max={2000}
+        min={2}
+        max={5000}
         value={guestCount}
         onChange={(e) => {
-          onGuestCountChange(Math.max(1, Number(e.target.value) || 1));
+          onGuestCountChange(Math.max(2, Number(e.target.value) || 2));
         }}
         className="w-full font-headline-sm text-headline-sm text-text-primary font-bold bg-transparent outline-none"
       />

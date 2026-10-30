@@ -5,6 +5,7 @@ import { generatePlan } from "./plansApi.js";
 const form = {
   vertical: "wedding" as const,
   title: "Maya & Ravi's Wedding",
+  notes: "Include a small family ceremony.",
   date: "2027-02-14",
   venue: "Botanical Orchard" as const,
   budgetTotal: 18000,
@@ -61,6 +62,10 @@ describe("plans API", () => {
       "/api/v1/plans/generate",
       expect.objectContaining({ method: "POST" })
     );
+    const [, requestInit] = fetchMock.mock.calls[0] as [unknown, RequestInit];
+    expect(JSON.parse(requestInit.body as string)).toMatchObject({
+      notes: form.notes,
+    });
   });
 
   it("warms the backend only once per browser session", async () => {

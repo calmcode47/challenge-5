@@ -61,4 +61,23 @@ describe("event planner", () => {
     expect(plan.riskFlags.join(" ")).toContain("low-sensory reset area");
     expect(plan.personalizedIdeas[0]).toContain("neighbourhood maker table");
   });
+
+  it("turns relevant planning context into a safe deterministic idea", () => {
+    const plan = createDeterministicPlan({
+      ...brief,
+      notes: "Celebrate our heritage and include a family ceremony.",
+    });
+
+    expect(plan.personalizedIdeas.join(" ")).toContain("host-led tradition");
+  });
+
+  it("does not place short-notice milestone due dates in the past", () => {
+    const eventDate = new Date();
+    eventDate.setUTCDate(eventDate.getUTCDate() + 7);
+    const date = eventDate.toISOString().slice(0, 10);
+    const plan = createDeterministicPlan({ ...brief, date });
+    const today = new Date().toISOString().slice(0, 10);
+
+    expect(plan.timeline.every((task) => task.due >= today)).toBe(true);
+  });
 });

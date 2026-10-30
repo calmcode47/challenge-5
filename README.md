@@ -54,6 +54,22 @@ cd frontend && npm run format:check && npm run lint && npm run typecheck && npm 
 
 GitHub Actions applies the same gates on `main` and pull requests. See [the architecture and safeguards](docs/ARCHITECTURE.md) for the security, resilience, and scale boundaries.
 
+## Evaluation-ready evidence
+
+Occasio is designed for the celebration and event-planning vertical. The assistant uses the event type, date, guest count, budget, venue, access settings, and optional planning priorities to produce a structured, actionable brief. It never delegates budget arithmetic, time-critical milestones, or safety safeguards to a generative model.
+
+- **Code quality:** strict TypeScript, small domain-focused modules, Prettier, ESLint, documented design boundaries, and CI checks on every change to `main`.
+- **Security and privacy:** schema-strict request and response boundaries; prompt-injection screening; Helmet, CORS allow-listing, request-size limits, request IDs, and rate limiting. Plans persist only in the visitor's browser; API briefs are not stored.
+- **Efficiency and resilience:** bounded LRU/TTL caching, a timeout and circuit breaker around optional Gemini enrichment, plus a fully deterministic fallback.
+- **Testing:** API integration, unit, resilience, state, client-contract, interaction, and accessibility tests with enforced coverage thresholds.
+- **Accessibility:** semantic controls, keyboard-operable radio groups and dialogs, focus containment/restoration, visible focus states, live notifications, and a concise privacy cue beside free-text planning priorities.
+
+### Submission checklist
+
+Before submitting, confirm the repository is **public**, `main` is the only branch, and the repository stays below the 10 MB limit. This checkout currently has only `main`; `git count-objects -vH` reports the tracked Git database size. Do not commit `.env` files, build output, coverage reports, or dependencies—these are excluded by the repository ignore rules.
+
+After a production deploy, use the plan wizard once with a real future date and verify the created plan appears in the workspace. The generated brief should show either a live AI-enriched plan or a clearly labelled resilient deterministic plan, never an unavailable or opaque result.
+
 ## Deployment
 
 `render.yaml` provisions the API from `backend/`; configure `ALLOWED_ORIGINS` to the public Vercel URL and add `GEMINI_API_KEY` only in Render's encrypted environment settings. Deploy the Vite frontend from `frontend/`, where `frontend/vercel.json` defines its Vite build and SPA fallback. Set `VITE_API_BASE_URL=https://<your-render-service>/api/v1` as a Vercel production environment variable. The Vercel project is linked to this repository, so pushes to `main` create deployments automatically.

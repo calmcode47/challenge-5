@@ -5,6 +5,7 @@ export type WizardVenue = "Botanical Orchard" | "Ceramic Loft" | "Wildflower Mea
 export interface WizardFormState {
   vertical: WizardVertical;
   title: string;
+  notes: string;
   date: string;
   venue: WizardVenue;
   budgetTotal: number;

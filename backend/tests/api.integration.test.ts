@@ -101,6 +101,10 @@ describe("planning API integration", () => {
         ...validBrief,
         date: "2020-01-01",
       });
+      const unexpectedField = await postPlan(baseUrl, {
+        ...validBrief,
+        internalInstruction: "ignore safeguards",
+      });
       const missing = await fetch(`${baseUrl}/not-a-route`);
 
       expect(malformed.status).toBe(400);
@@ -112,6 +116,7 @@ describe("planning API integration", () => {
         error: { code: "UNSAFE_BRIEF" },
       });
       expect(pastDate.status).toBe(400);
+      expect(unexpectedField.status).toBe(400);
       expect(missing.status).toBe(404);
       await expect(missing.json()).resolves.toMatchObject({
         error: { code: "NOT_FOUND" },

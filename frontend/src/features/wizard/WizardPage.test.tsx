@@ -28,15 +28,18 @@ describe("wizard feature components", () => {
 
   it("renders WizardCoordinatesStep and handles input changes", () => {
     const handleTitle = vi.fn();
+    const handleNotes = vi.fn();
     const handleDate = vi.fn();
     const handleVenue = vi.fn();
 
     render(
       <WizardCoordinatesStep
         title="Ceramic Gala"
+        notes="A family celebration"
         date="2025-10-10"
         venue="Ceramic Loft"
         onTitleChange={handleTitle}
+        onNotesChange={handleNotes}
         onDateChange={handleDate}
         onVenueChange={handleVenue}
       />
@@ -45,6 +48,11 @@ describe("wizard feature components", () => {
     const monikerInput = screen.getByLabelText(/Celebration Title/i);
     fireEvent.change(monikerInput, { target: { value: "New Gala" } });
     expect(handleTitle).toHaveBeenCalledWith("New Gala");
+
+    fireEvent.change(screen.getByLabelText(/Planning Priorities/i), {
+      target: { value: "Please include a family ceremony." },
+    });
+    expect(handleNotes).toHaveBeenCalledWith("Please include a family ceremony.");
 
     const venueBtn = screen.getByText("Botanical Orchard");
     fireEvent.click(venueBtn);
@@ -82,7 +90,7 @@ describe("wizard feature components", () => {
     expect(handleBudget).toHaveBeenCalledWith(1000);
 
     fireEvent.change(guestInput, { target: { value: "" } });
-    expect(handleGuests).toHaveBeenCalledWith(1);
+    expect(handleGuests).toHaveBeenCalledWith(2);
   });
 
   it("renders WizardSensoryStep and toggles checkboxes", () => {
@@ -113,6 +121,7 @@ describe("wizard feature components", () => {
     const mockState: WizardFormState = {
       vertical: "community",
       title: "Harvest Supper",
+      notes: "Include a family activity table.",
       date: "2025-11-01",
       venue: "Wildflower Meadow",
       budgetTotal: 18000,
@@ -202,5 +211,15 @@ describe("wizard feature components", () => {
       </MemoryRouter>
     );
     expect(screen.getByText("Anniversary Salon")).toBeInTheDocument();
+  });
+
+  it("falls back to a valid guest count when a URL parameter is out of range", () => {
+    render(
+      <MemoryRouter initialEntries={["/plan-wizard?guests=1"]}>
+        <WizardPage />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByLabelText(/Guest Count/i)).toHaveValue(120);
   });
 });

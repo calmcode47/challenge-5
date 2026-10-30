@@ -132,7 +132,7 @@ function TicketAction({
       </button>
       <div className="flex items-center justify-center gap-2 mt-2 text-center text-secondary font-label-sm text-label-sm font-medium">
         <MaterialIcon name="shield" size={14} />
-        <span>Zero cancellation slip &bull; Immediate PDF Ledger</span>
+        <span>Saved privately in this browser &bull; Ready in moments</span>
       </div>
     </div>
   );

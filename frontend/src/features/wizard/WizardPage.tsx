@@ -26,6 +26,11 @@ function getInitialVertical(param: string | null): WizardVertical {
   return "wedding";
 }
 
+function getInitialGuestCount(param: string | null): number {
+  const parsed = Number(param);
+  return Number.isInteger(parsed) && parsed >= 2 && parsed <= 5_000 ? parsed : 120;
+}
+
 interface StepListProps {
   formState: WizardFormState;
   setFormState: React.Dispatch<React.SetStateAction<WizardFormState>>;
@@ -42,10 +47,14 @@ function WizardStepList({ formState, setFormState }: StepListProps): ReactElemen
       />
       <WizardCoordinatesStep
         title={formState.title}
+        notes={formState.notes}
         date={formState.date}
         venue={formState.venue}
         onTitleChange={(t) => {
           setFormState((s) => ({ ...s, title: t }));
+        }}
+        onNotesChange={(notes) => {
+          setFormState((s) => ({ ...s, notes }));
         }}
         onDateChange={(d) => {
           setFormState((s) => ({ ...s, date: d }));
@@ -167,10 +176,11 @@ export function WizardPage(): ReactElement {
   const [formState, setFormState] = useState<WizardFormState>({
     vertical: getInitialVertical(searchParams.get("vertical")),
     title: "Elena & Marcus Blossom Gathering",
+    notes: "",
     date: defaultEventDate(),
     venue: "Botanical Orchard",
     budgetTotal: 24000,
-    guestCount: Number(searchParams.get("guests")) || 120,
+    guestCount: getInitialGuestCount(searchParams.get("guests")),
     sensoryAda: true,
     sensoryAllergen: true,
     sensoryPavilion: true,

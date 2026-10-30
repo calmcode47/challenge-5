@@ -1,24 +1,24 @@
 import { type KeyboardEvent, type ReactElement } from "react";
 import { MaterialIcon } from "../../components/common/MaterialIcon.js";
 import type { WizardVenue } from "./wizardTypes.js";
-
+import { WizardEventDetailsFields } from "./WizardEventDetailsFields.js";
 /** Props for WizardCoordinatesStep. */
 export interface WizardCoordinatesStepProps {
   readonly title: string;
+  readonly notes: string;
   readonly date: string;
   readonly venue: WizardVenue;
   readonly onTitleChange: (title: string) => void;
+  readonly onNotesChange: (notes: string) => void;
   readonly onDateChange: (date: string) => void;
   readonly onVenueChange: (venue: WizardVenue) => void;
 }
-
 interface VenueOption {
   id: WizardVenue;
   title: string;
   subtitle: string;
   icon: string;
 }
-
 const VENUES: VenueOption[] = [
   {
     id: "Botanical Orchard",
@@ -39,7 +39,6 @@ const VENUES: VenueOption[] = [
     icon: "filter_vintage",
   },
 ];
-
 function selectRelativeVenue(
   current: WizardVenue,
   direction: 1 | -1,
@@ -63,100 +62,6 @@ function handleVenueKeyDown(
     event.preventDefault();
     selectRelativeVenue(current, -1, onVenueChange);
   }
-}
-
-function TitleInputField({
-  title,
-  onTitleChange,
-}: {
-  title: string;
-  onTitleChange: (v: string) => void;
-}): ReactElement {
-  return (
-    <div className="flex flex-col gap-space-xs">
-      <label
-        htmlFor="event-moniker-input"
-        className="font-label-lg text-label-lg text-text-primary font-bold"
-      >
-        Celebration Title / Moniker
-      </label>
-      <div className="relative flex items-center">
-        <span className="absolute left-3 text-secondary">
-          <MaterialIcon name="edit_note" size={20} />
-        </span>
-        <input
-          id="event-moniker-input"
-          type="text"
-          value={title}
-          onChange={(e) => {
-            onTitleChange(e.target.value);
-          }}
-          placeholder="E.g., Julian's Ceramic Solstice Dinner"
-          className="w-full pl-10 pr-4 py-3 rounded-xl bg-cream-linen text-text-primary font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-wine-accent/40 shadow-inner"
-        />
-      </div>
-      <span className="font-label-sm text-label-sm text-text-muted">
-        Inscribed on invitations and table menus
-      </span>
-    </div>
-  );
-}
-
-function DateInputField({
-  date,
-  onDateChange,
-}: {
-  date: string;
-  onDateChange: (v: string) => void;
-}): ReactElement {
-  return (
-    <div className="flex flex-col gap-space-xs">
-      <label
-        htmlFor="event-date-input"
-        className="font-label-lg text-label-lg text-text-primary font-bold"
-      >
-        Gathering Date
-      </label>
-      <div className="relative flex items-center">
-        <span className="absolute left-3 text-secondary">
-          <MaterialIcon name="calendar_today" size={20} />
-        </span>
-        <input
-          id="event-date-input"
-          type="date"
-          min={new Date().toISOString().slice(0, 10)}
-          value={date}
-          onChange={(e) => {
-            onDateChange(e.target.value);
-          }}
-          placeholder="e.g., September 19, 2027"
-          className="w-full pl-10 pr-4 py-3 rounded-xl bg-cream-linen text-text-primary font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-wine-accent/40 shadow-inner"
-        />
-      </div>
-      <span className="font-label-sm text-label-sm text-text-muted">
-        Harmonized with seasonal bloom calendars
-      </span>
-    </div>
-  );
-}
-
-function CoordinatesFields({
-  title,
-  date,
-  onTitleChange,
-  onDateChange,
-}: {
-  title: string;
-  date: string;
-  onTitleChange: (v: string) => void;
-  onDateChange: (v: string) => void;
-}): ReactElement {
-  return (
-    <>
-      <TitleInputField title={title} onTitleChange={onTitleChange} />
-      <DateInputField date={date} onDateChange={onDateChange} />
-    </>
-  );
 }
 
 function VenueSelector({
@@ -217,9 +122,11 @@ function VenueSelector({
  */
 export function WizardCoordinatesStep({
   title,
+  notes,
   date,
   venue,
   onTitleChange,
+  onNotesChange,
   onDateChange,
   onVenueChange,
 }: WizardCoordinatesStepProps): ReactElement {
@@ -240,10 +147,12 @@ export function WizardCoordinatesStep({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-space-lg mt-space-md">
-        <CoordinatesFields
+        <WizardEventDetailsFields
           title={title}
+          notes={notes}
           date={date}
           onTitleChange={onTitleChange}
+          onNotesChange={onNotesChange}
           onDateChange={onDateChange}
         />
         <VenueSelector venue={venue} onVenueChange={onVenueChange} />

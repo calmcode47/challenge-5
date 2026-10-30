@@ -60,7 +60,7 @@ export async function generatePlan(form: WizardFormState): Promise<GeneratedPlan
       guestCount: form.guestCount,
       budget: form.budgetTotal,
       venue: form.venue,
-      notes: "",
+      notes: form.notes.trim(),
       accessibility: {
         stepFreeAccess: form.sensoryAda,
         allergenAware: form.sensoryAllergen,

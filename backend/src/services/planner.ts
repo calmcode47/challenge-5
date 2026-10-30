@@ -29,6 +29,15 @@ function dateBefore(date: Date, days: number): string {
   return copy.toISOString().slice(0, 10);
 }
 
+function today(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/** Keeps urgent plans actionable by never assigning a milestone to an already-past date. */
+function actionableDueDate(eventDate: Date, daysBefore: number): string {
+  return [dateBefore(eventDate, daysBefore), today()].sort().at(-1) ?? today();
+}
+
 function allocationFor(request: PlanRequest): BudgetAllocation[] {
   const shifts: Record<PlanRequest["eventType"], readonly [number, number]> = {
     wedding: [0.01, -0.01],
@@ -73,31 +82,31 @@ function timelineFor(request: PlanRequest): TimelineTask[] {
   return [
     {
       phase: "Foundation",
-      due: dateBefore(eventDate, 180),
+      due: actionableDueDate(eventDate, 180),
       task: "Confirm venue terms, capacity, access route, and deposit schedule.",
       owner: "Planner",
     },
     {
       phase: "Supplier lock",
-      due: dateBefore(eventDate, 120),
+      due: actionableDueDate(eventDate, 120),
       task: "Compare insured vendors against the brief and secure priority contracts.",
       owner: "Planner",
     },
     {
       phase: "Guest care",
-      due: dateBefore(eventDate, 75),
+      due: actionableDueDate(eventDate, 75),
       task: `Publish RSVP flow and collect dietary and access needs for ${String(request.guestCount)} guests.`,
       owner: "Host",
     },
     {
       phase: "Experience",
-      due: dateBefore(eventDate, 45),
+      due: actionableDueDate(eventDate, 45),
       task: "Approve floor plan, run-of-show, weather response, and communications tree.",
       owner: "Coordinator",
     },
     {
       phase: "Final pass",
-      due: dateBefore(eventDate, 14),
+      due: actionableDueDate(eventDate, 14),
       task: "Reconfirm vendors, balances, contacts, transport, and emergency kit.",
       owner: "Planner",
     },
@@ -141,11 +150,30 @@ function ideasFor(request: PlanRequest): string[] {
         : request.eventType === "anniversary"
           ? "shared-story toast"
           : "welcome-note keepsake";
-  return [
+  const ideas = [
     `Create a ${theme} that lets guests contribute a small, meaningful detail without slowing the schedule.`,
     `Use ${request.venue} as a planning anchor: frame one arrival moment, one gathering moment, and one quiet reset area.`,
     `Keep the experience intentional with a per-guest working budget of $${(request.budget / request.guestCount).toFixed(2)} and one protected contingency envelope.`,
   ];
+  const normalizedNotes = request.notes.toLowerCase();
+  if (/\b(cultural|tradition|heritage|ceremony)\b/u.test(normalizedNotes)) {
+    ideas.push(
+      "Reserve a named place in the run-of-show for a host-led tradition, with timing and participation confirmed in advance.",
+    );
+  } else if (/\b(children|family|kid|child)\b/u.test(normalizedNotes)) {
+    ideas.push(
+      "Create a supervised family-friendly activity zone that stays visible from the main gathering without interrupting the programme.",
+    );
+  } else if (
+    /\b(sustainable|sustainability|local|low[ -]?waste)\b/u.test(
+      normalizedNotes,
+    )
+  ) {
+    ideas.push(
+      "Prioritize reusable serviceware, local sourcing, and a clear vendor plan for donating or composting safe surplus.",
+    );
+  }
+  return ideas;
 }
 
 function risksFor(request: PlanRequest): string[] {
