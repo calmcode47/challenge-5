@@ -123,6 +123,7 @@ function buildStoredPlan(
       generated?.personalizedIdeas[0] ??
       `Sculpted blueprint for ${String(formState.guestCount)} guests with a protected contingency ledger.`,
     budgetAllocation: generated?.budgetAllocation,
+    timeline: generated?.timeline,
     vendorChecklist: generated?.vendorChecklist,
     riskFlags: generated?.riskFlags,
     expenses: [],

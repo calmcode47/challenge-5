@@ -12,7 +12,7 @@ const BASE_SPLITS = [
   ["Design & florals", 0.1],
   ["Photography & entertainment", 0.12],
   ["Stationery & guest care", 0.05],
-  ["Contingency", 0.12],
+  ["Contingency", 0.19],
 ] as const;
 
 function roundCurrency(amount: number): number {

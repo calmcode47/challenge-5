@@ -1,27 +1,25 @@
-import { useState, type ReactElement } from "react";
+import type { ReactElement } from "react";
+import { Link } from "react-router";
 import { MaterialIcon } from "../../components/common/MaterialIcon.js";
-import { useUiStore } from "../../state/uiStore.js";
 
 interface ConceptCardProps {
-  scoreBadge: string;
+  label: string;
   badgeBg: string;
   icon: string;
   iconBg: string;
   title: string;
   desc: string;
-  critic: string;
-  onCommit: () => void;
+  planningNote: string;
 }
 
 function DualPassConceptCard({
-  scoreBadge,
+  label,
   badgeBg,
   icon,
   iconBg,
   title,
   desc,
-  critic,
-  onCommit,
+  planningNote,
 }: ConceptCardProps): ReactElement {
   return (
     <div className="bg-cream-linen rounded-2xl p-space-md shadow-md flex flex-col gap-space-sm hover:-translate-y-0.5 transition-transform">
@@ -29,11 +27,11 @@ function DualPassConceptCard({
         <span
           className={`font-label-sm text-label-sm ${badgeBg} text-wine-deep px-space-sm py-0.5 rounded-full font-bold`}
         >
-          {scoreBadge}
+          {label}
         </span>
         <span className="font-label-sm text-label-sm text-secondary flex items-center gap-1 font-semibold">
           <MaterialIcon name="verified" size={15} />
-          <span>Validated</span>
+          <span>Illustrative</span>
         </span>
       </div>
       <div className="flex items-start gap-space-sm">
@@ -48,52 +46,15 @@ function DualPassConceptCard({
         </div>
       </div>
       <div className="bg-surface-container-low rounded-xl p-space-xs flex items-center justify-between text-label-sm font-label-sm">
-        <span className="text-wine-accent font-medium">{critic}</span>
-        <button
-          type="button"
-          onClick={onCommit}
+        <span className="text-wine-accent font-medium">{planningNote}</span>
+        <Link
+          to="/plan-wizard"
           className="text-wine-deep font-bold hover:underline flex items-center gap-0.5"
         >
-          <span>Commit to Timeline</span>
+          <span>Refine in wizard</span>
           <MaterialIcon name="arrow_forward" size={14} />
-        </button>
+        </Link>
       </div>
-    </div>
-  );
-}
-
-function DualPassPromptBar({
-  prompt,
-  setPrompt,
-  isRunning,
-  onRerun,
-}: {
-  prompt: string;
-  setPrompt: (v: string) => void;
-  isRunning: boolean;
-  onRerun: () => void;
-}): ReactElement {
-  return (
-    <div className="flex items-center justify-between bg-surface-container-lowest/80 backdrop-blur-sm p-space-sm rounded-2xl">
-      <div className="flex items-center gap-2 text-wine-deep font-label-md text-label-md flex-1 mr-2">
-        <MaterialIcon name="psychology" size={18} />
-        <input
-          type="text"
-          value={prompt}
-          onChange={(e) => {
-            setPrompt(e.target.value);
-          }}
-          className="w-full bg-transparent outline-none text-wine-deep font-medium text-body-sm"
-        />
-      </div>
-      <button
-        type="button"
-        disabled={isRunning}
-        onClick={onRerun}
-        className="px-space-sm py-1 bg-wine-deep text-cream-linen rounded-lg font-label-sm text-label-sm hover:bg-wine-accent transition-colors font-bold disabled:opacity-75 shrink-0"
-      >
-        {isRunning ? "Evaluating..." : "Rerun Dual-Pass"}
-      </button>
     </div>
   );
 }
@@ -104,84 +65,53 @@ function DualPassHeader(): ReactElement {
       <div className="flex items-center gap-space-xs text-wine-deep mb-1">
         <MaterialIcon name="auto_awesome" size={20} />
         <span className="font-label-sm text-label-sm font-bold uppercase tracking-widest">
-          Dual-Pass Intelligence
+          Planning considerations
         </span>
       </div>
       <h2 className="font-headline-md text-headline-md text-wine-deep font-bold">
-        Studio Picks: Celebration Concepts
+        Illustrative Celebration Ideas
       </h2>
       <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
-        Gemini Generator-Critic validated proposals balanced against sensory flow and low-stress
-        guest transitions.
+        Examples show how the planner can translate guest comfort and schedule flow into useful
+        priorities. Create a plan for context-specific recommendations.
       </p>
     </div>
   );
 }
 
-function DualPassCardsList({ onCommit }: { onCommit: (title: string) => void }): ReactElement {
+function DualPassCardsList(): ReactElement {
   return (
     <>
       <DualPassConceptCard
-        scoreBadge="Score 98/100 • Pass"
+        label="Guest-care example"
         badgeBg="bg-butter-sun"
         icon="local_bar"
         iconBg="bg-secondary-container"
         title="Sunset Acoustic Toast with Zero-Proof Herbal Cordials"
         desc="Hand-pressed elderflower, thyme, and mountain honey cordials poured into hand-turned ceramic goblets as the sun meets the orchard line."
-        critic="Critic Review: Low queue bottleneck, 100% accessible to non-drinkers"
-        onCommit={() => {
-          onCommit("Sunset Acoustic Toast");
-        }}
+        planningNote="Consider queues, non-alcoholic choices, and quiet pacing."
       />
       <DualPassConceptCard
-        scoreBadge="Score 94/100 • Pass"
+        label="Low-sensory example"
         badgeBg="bg-sage-soft"
         icon="casino"
         iconBg="bg-blush-petal/50"
         title="Quiet Pergola with Handcrafted Wooden Lawn Games"
         desc="Custom oversized Kubb, wooden ring-toss, and tactile ceramic dominoes arranged beneath wild wisteria vines for acoustic sanctuary."
-        critic="Critic Review: Prevents sensory overload for neurodivergent guests"
-        onCommit={() => {
-          onCommit("Quiet Pergola");
-        }}
+        planningNote="Confirm supervision, acoustic limits, and accessible routes."
       />
     </>
   );
 }
 
 /**
- * Dual-Pass Intelligence concept cards validated by Generator-Critic loop.
+ * Context-setting examples that direct guests to the real plan-creation flow.
  */
 export function WorkspaceDualPassBlock(): ReactElement {
-  const { showNotification } = useUiStore();
-  const [prompt, setPrompt] = useState("Add twilight slow dance with sparkler cadence");
-  const [isRunning, setIsRunning] = useState(false);
-
-  const handleCommit = (title: string): void => {
-    showNotification(`Committed "${title}" to your run-of-show timeline nodes.`, "success");
-  };
-
-  const handleRerun = (): void => {
-    setIsRunning(true);
-    setTimeout(() => {
-      setIsRunning(false);
-      showNotification(
-        "Dual-Pass evaluated: 2 fresh concepts synthesized with score > 90.",
-        "info"
-      );
-    }, 1000);
-  };
-
   return (
     <section className="lg:col-span-5 bg-sage-earth/25 rounded-3xl p-space-lg flex flex-col gap-space-md relative overflow-hidden shadow-sm">
       <DualPassHeader />
-      <DualPassCardsList onCommit={handleCommit} />
-      <DualPassPromptBar
-        prompt={prompt}
-        setPrompt={setPrompt}
-        isRunning={isRunning}
-        onRerun={handleRerun}
-      />
+      <DualPassCardsList />
     </section>
   );
 }

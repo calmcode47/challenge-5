@@ -71,7 +71,10 @@ export function WizardStepperHeader(): ReactElement {
           <MaterialIcon name="draw" size={16} />
           <span>Tactile Celebration Intake Studio</span>
         </div>
-        <h1 className="font-headline-xl text-headline-xl text-cream-linen max-w-3xl font-bold tracking-tight">
+        <h1
+          tabIndex={-1}
+          className="font-headline-xl text-headline-xl text-cream-linen max-w-3xl font-bold tracking-tight"
+        >
           Handcraft Your Milestone
         </h1>
         <p className="font-body-lg text-body-lg text-blush-petal max-w-2xl mt-space-xs font-normal">

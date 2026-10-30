@@ -74,6 +74,7 @@ function HeaderActions(): ReactElement {
         onClick={openSearch}
         className="w-10 h-10 rounded-full bg-cream-surface flex items-center justify-center text-wine-deep hover:bg-blush-petal/30 transition-colors"
         aria-label="Search studio"
+        title="Search studio (Ctrl or ⌘ K)"
       >
         <MaterialIcon name="search" size={20} />
       </button>
@@ -86,7 +87,7 @@ function HeaderActions(): ReactElement {
       </Link>
       <div
         className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-[0_2px_6px_rgba(92,29,36,0.12)] text-on-primary"
-        aria-label="User profile"
+        aria-hidden="true"
       >
         <MaterialIcon name="person" size={18} />
       </div>

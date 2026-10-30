@@ -32,7 +32,7 @@ afterEach(() => {
 });
 
 describe("API", () => {
-  it("exposes public and API-scoped health endpoints", async () => {
+  it("exposes a service index plus public and API-scoped health endpoints", async () => {
     const app = createApp();
     const server = app.listen();
     const address = server.address();
@@ -41,12 +41,21 @@ describe("API", () => {
     const rootResponse = await fetch(
       `http://127.0.0.1:${String(address.port)}/health`,
     );
+    const indexResponse = await fetch(
+      `http://127.0.0.1:${String(address.port)}/`,
+    );
     const apiResponse = await fetch(
       `http://127.0.0.1:${String(address.port)}/api/v1/health`,
     );
     await new Promise<void>((resolve) => server.close(() => resolve()));
     expect(rootResponse.status).toBe(200);
+    expect(indexResponse.status).toBe(200);
     expect(apiResponse.status).toBe(200);
+    await expect(indexResponse.json()).resolves.toMatchObject({
+      service: "occasio-api",
+      version: "1.0.0",
+      health: "/api/v1/health",
+    });
     await expect(apiResponse.json()).resolves.toMatchObject({ status: "ok" });
   });
 

@@ -1,7 +1,7 @@
 import { useState, type ReactElement } from "react";
 import { Link } from "react-router";
 import { MaterialIcon } from "../../components/common/MaterialIcon.js";
-import { exportVaultJson, resetVault } from "../../state/persistence.js";
+import { exportVaultJson, resetVault, verifyVault } from "../../state/persistence.js";
 import { useUiStore } from "../../state/uiStore.js";
 
 /** Props for VaultHygieneSuite. */
@@ -17,7 +17,7 @@ function VaultStorageMonitor({ text, pct }: { text: string; pct: number }): Reac
       <div className="flex justify-between items-center text-label-md font-label-md">
         <span className="text-wine-deep font-bold flex items-center gap-1">
           <MaterialIcon name="data_usage" size={16} className="text-wine-accent" />
-          LocalStorage Quota Used
+          Browser Storage Used
         </span>
         <span className="text-secondary font-bold">{text}</span>
       </div>
@@ -30,7 +30,7 @@ function VaultStorageMonitor({ text, pct }: { text: string; pct: number }): Reac
       <div className="flex items-center justify-between text-label-sm font-label-sm text-text-muted pt-1">
         <span>Healthy JSON Schema v2.4</span>
         <span className="text-secondary flex items-center gap-0.5 font-medium">
-          <MaterialIcon name="check_circle" size={14} /> Zero sync latency
+          <MaterialIcon name="check_circle" size={14} /> Stored on this device
         </span>
       </div>
     </div>
@@ -38,7 +38,7 @@ function VaultStorageMonitor({ text, pct }: { text: string; pct: number }): Reac
 }
 
 interface ActionButtonsProps {
-  auditStatus: string;
+  auditStatus: "Not checked" | "Valid" | "Needs attention";
   onAudit: () => void;
   onSnapshot: () => void;
   onReset: () => void;
@@ -59,7 +59,7 @@ function VaultHygieneActions({
       >
         <span className="flex items-center gap-space-xs">
           <MaterialIcon name="rule_settings" size={20} className="text-secondary" />
-          <span>Schema Hygiene Audit</span>
+          <span>Check saved-plan data</span>
         </span>
         <span className="px-2 py-0.5 bg-cream-surface rounded-full text-label-sm text-secondary font-bold">
           {auditStatus}
@@ -123,7 +123,7 @@ function VaultManifestoFooter(): ReactElement {
 interface HygieneCardProps {
   storageQuotaText: string;
   storagePct: number;
-  auditStatus: "Ready" | "Checking..." | "100% Intact";
+  auditStatus: "Not checked" | "Valid" | "Needs attention";
   onAudit: () => void;
   onSnapshot: () => void;
   onReset: () => void;
@@ -137,13 +137,12 @@ function HygieneCard(props: HygieneCardProps): ReactElement {
           <div className="flex items-center gap-space-xs">
             <MaterialIcon name="verified_user" size={24} className="text-secondary" />
             <span className="font-headline-sm text-headline-sm text-wine-deep font-bold">
-              Local Storage Sovereign Hygiene
+              Local Vault Controls
             </span>
           </div>
           <p className="font-body-md text-body-md text-on-surface-variant">
-            Every seating chart, vendor invoice, and dietary restriction is preserved
-            deterministically inside your browser’s indexed local boundary. No third-party ad
-            networks or cookies touch your memories.
+            Saved plans stay in this browser. Check their stored format, download a JSON backup, or
+            reset the local sample vault. Planning API briefs are not retained by the service.
           </p>
           <VaultStorageMonitor text={props.storageQuotaText} pct={props.storagePct} />
         </div>
@@ -159,7 +158,7 @@ function HygieneCard(props: HygieneCardProps): ReactElement {
 }
 
 /**
- * Local device vault hygiene controls and sovereign data storage monitor.
+ * Local device vault verification, export, and reset controls.
  */
 export function VaultHygieneSuite({
   storageQuotaText,
@@ -167,17 +166,25 @@ export function VaultHygieneSuite({
   onDataReset,
 }: VaultHygieneSuiteProps): ReactElement {
   const { showNotification } = useUiStore();
-  const [auditStatus, setAuditStatus] = useState<"Ready" | "Checking..." | "100% Intact">("Ready");
+  const [auditStatus, setAuditStatus] = useState<"Not checked" | "Valid" | "Needs attention">(
+    "Not checked"
+  );
 
   const handleRunAudit = (): void => {
-    setAuditStatus("Checking...");
-    setTimeout(() => {
-      setAuditStatus("100% Intact");
+    const verification = verifyVault();
+    if (verification.isValid) {
+      setAuditStatus("Valid");
       showNotification(
-        "Schema audit complete: 0 corrupt nodes, valid celebratory ledgers verified.",
+        `${String(verification.recordCount)} saved plan${verification.recordCount === 1 ? "" : "s"} passed the local format check.`,
         "success"
       );
-    }, 800);
+      return;
+    }
+    setAuditStatus("Needs attention");
+    showNotification(
+      "The saved-plan format could not be verified. Export a backup before resetting.",
+      "warning"
+    );
   };
 
   const handleExportSnapshot = (): void => {

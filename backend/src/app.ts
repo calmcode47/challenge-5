@@ -7,6 +7,8 @@ import { generatePlan } from "./controllers/planController.js";
 import { errorHandler, notFound } from "./middleware/errors.js";
 import { rateLimit } from "./middleware/rateLimit.js";
 
+const SERVICE_VERSION = "1.0.0";
+
 class DisallowedOriginError extends Error {
   public constructor() {
     super("Origin is not allowed");
@@ -52,11 +54,26 @@ export function createApp(): express.Express {
   );
   app.use(cors(corsOptions()));
   app.use(express.json({ limit: "32kb", strict: true }));
+  app.get("/", (_request, response) =>
+    response.status(200).json({
+      service: "occasio-api",
+      version: SERVICE_VERSION,
+      health: "/api/v1/health",
+    }),
+  );
   app.get("/health", (_request, response) =>
-    response.status(200).json({ status: "ok", service: "occasio-api" }),
+    response.status(200).json({
+      status: "ok",
+      service: "occasio-api",
+      version: SERVICE_VERSION,
+    }),
   );
   app.get("/api/v1/health", (_request, response) =>
-    response.status(200).json({ status: "ok", service: "occasio-api" }),
+    response.status(200).json({
+      status: "ok",
+      service: "occasio-api",
+      version: SERVICE_VERSION,
+    }),
   );
   app.post("/api/v1/plans/generate", rateLimit(), generatePlan);
   app.use(notFound);

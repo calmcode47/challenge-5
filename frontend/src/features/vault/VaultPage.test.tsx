@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { VaultPage } from "./VaultPage.js";
 import { VaultHero } from "./VaultHero.js";
@@ -116,8 +116,7 @@ describe("vault feature components", () => {
     expect(screen.getByText("Floral Placeholder Gathering")).toBeInTheDocument();
   });
 
-  it("renders VaultHygieneSuite, runs audit, and resets when confirmed", () => {
-    vi.useFakeTimers();
+  it("renders local vault controls, verifies saved data, and resets when confirmed", () => {
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
     const handleReset = vi.fn();
 
@@ -131,15 +130,10 @@ describe("vault feature components", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText("Local Storage Sovereign Hygiene")).toBeInTheDocument();
-    const auditBtn = screen.getByText("Schema Hygiene Audit");
+    expect(screen.getByText("Local Vault Controls")).toBeInTheDocument();
+    const auditBtn = screen.getByText("Check saved-plan data");
     fireEvent.click(auditBtn);
-    expect(screen.getByText("Checking...")).toBeInTheDocument();
-
-    act(() => {
-      vi.runAllTimers();
-    });
-    expect(screen.getByText("100% Intact")).toBeInTheDocument();
+    expect(screen.getByText("Valid")).toBeInTheDocument();
 
     const snapshotBtn = screen.getByText("Generate Vault Snapshot");
     fireEvent.click(snapshotBtn);
@@ -168,7 +162,6 @@ describe("vault feature components", () => {
     expect(handleResetCancel).not.toHaveBeenCalled();
     cancelSpy.mockRestore();
     unmount();
-    vi.useRealTimers();
   });
 
   it("renders entire VaultPage and triggers refresh", () => {

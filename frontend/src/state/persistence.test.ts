@@ -8,6 +8,7 @@ import {
   importVaultJson,
   removePlan,
   getStorageUsage,
+  verifyVault,
   type StoredPlan,
 } from "./persistence.js";
 
@@ -38,6 +39,14 @@ describe("persistence store", () => {
     const plans = loadPlans();
     expect(plans.length).toBeGreaterThanOrEqual(1);
     expect(plans[0]?.id).toBe("cl-001");
+  });
+
+  it("verifies valid and malformed local vault data without changing it", () => {
+    loadPlans();
+    expect(verifyVault()).toMatchObject({ isValid: true, recordCount: 3 });
+
+    localStorage.setItem("soft_clay_vault_plans_v1", "not json");
+    expect(verifyVault()).toMatchObject({ isValid: false, recordCount: 0 });
   });
 
   it("saves a new plan and retrieves it by id", () => {

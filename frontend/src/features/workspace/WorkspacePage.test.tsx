@@ -1,11 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { axe } from "vitest-axe";
 import { WorkspacePage } from "./WorkspacePage.js";
 import { WorkspaceBanner } from "./WorkspaceBanner.js";
 import { WorkspaceBudgetRatio } from "./WorkspaceBudgetRatio.js";
-import { WorkspacePillarsGrid } from "./WorkspacePillarsGrid.js";
 import { WorkspaceDualPassBlock } from "./WorkspaceDualPassBlock.js";
 import { WorkspaceSafeguardsBlock } from "./WorkspaceSafeguardsBlock.js";
 import { WorkspaceLogExpenseModal } from "./WorkspaceLogExpenseModal.js";
@@ -55,18 +54,10 @@ describe("workspace feature components", () => {
     expect(handleRunOfShow).toHaveBeenCalledTimes(1);
   });
 
-  it("renders WorkspaceBudgetRatio and WorkspacePillarsGrid", () => {
-    render(
-      <>
-        <WorkspaceBudgetRatio />
-        <WorkspacePillarsGrid />
-      </>
-    );
+  it("renders the generated budget allocation", () => {
+    render(<WorkspaceBudgetRatio />);
 
     expect(screen.getByText("Stoneware Capital Ledger")).toBeInTheDocument();
-    expect(screen.getByText("Craft Pillar Budgets")).toBeInTheDocument();
-    expect(screen.getByText("Venue & Dining")).toBeInTheDocument();
-    expect(screen.getByText("Photo & Film")).toBeInTheDocument();
   });
 
   it("renders generated allocations and warns when recorded commitments exceed the budget", () => {
@@ -93,54 +84,33 @@ describe("workspace feature components", () => {
     expect(screen.getByText(/above the total budget/i)).toBeInTheDocument();
   });
 
-  it("renders WorkspaceDualPassBlock, changes prompt, and commits a concept", () => {
-    vi.useFakeTimers();
-    render(<WorkspaceDualPassBlock />);
-
-    expect(screen.getByText("Studio Picks: Celebration Concepts")).toBeInTheDocument();
-    const promptInput = screen.getByDisplayValue(/twilight slow dance/i);
-    fireEvent.change(promptInput, { target: { value: "Candlelit dessert bar" } });
-
-    const commitButtons = screen.getAllByText("Commit to Timeline");
-    const firstCommit = commitButtons[0];
-    if (firstCommit) fireEvent.click(firstCommit);
-    expect(useUiStore.getState().notification?.message).toContain("Sunset Acoustic Toast");
-
-    const secondCommit = commitButtons[1];
-    if (secondCommit) fireEvent.click(secondCommit);
-    expect(useUiStore.getState().notification?.message).toContain("Quiet Pergola");
-
-    const rerunBtn = screen.getByText("Rerun Dual-Pass");
-    fireEvent.click(rerunBtn);
-    expect(screen.getByText("Evaluating...")).toBeInTheDocument();
-
-    act(() => {
-      vi.runAllTimers();
-    });
-    vi.useRealTimers();
-  });
-
-  it("renders WorkspaceSafeguardsBlock and handles signoffs", () => {
-    render(<WorkspaceSafeguardsBlock />);
-    expect(screen.getByText("Vendor RFP Safeguard Inquiries")).toBeInTheDocument();
-
-    const signoffBtn = screen.getByText("View Signoff");
-    fireEvent.click(signoffBtn);
-    expect(useUiStore.getState().notification?.message).toContain(
-      "Signoff docket #CLAY-KITCHEN-08"
+  it("renders illustrative planning ideas with real paths back to the wizard", () => {
+    render(
+      <MemoryRouter>
+        <WorkspaceDualPassBlock />
+      </MemoryRouter>
     );
 
-    const acousticBtn = screen.getByText("Acoustic Map");
-    fireEvent.click(acousticBtn);
-    expect(useUiStore.getState().notification?.message).toContain("#TWP-2025-41A");
+    expect(screen.getByText("Illustrative Celebration Ideas")).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /refine in wizard/i })[0]).toHaveAttribute(
+      "href",
+      "/plan-wizard"
+    );
+  });
 
-    const routeBtn = screen.getByText("Grounds Route");
-    fireEvent.click(routeBtn);
-    expect(useUiStore.getState().notification?.message).toContain("Slope Clearance: 1:14");
-
-    const dispatchBtn = screen.getByText("Dispatch New RFP Inquiry");
-    fireEvent.click(dispatchBtn);
-    expect(useUiStore.getState().notification?.message).toContain("New RFP dispatch created");
+  it("renders safeguards generated for the active plan", () => {
+    render(
+      <WorkspaceSafeguardsBlock
+        plan={{
+          ...mockPlan,
+          vendorChecklist: ["Verify an accessible route with the venue."],
+          riskFlags: ["Keep contingency available until final balances are confirmed."],
+        }}
+      />
+    );
+    expect(screen.getByText("Vendor Questions & Risk Flags")).toBeInTheDocument();
+    expect(screen.getByText("Verify an accessible route with the venue.")).toBeInTheDocument();
+    expect(screen.getByText(/Keep contingency available/i)).toBeInTheDocument();
   });
 
   it("renders an accessible WorkspaceLogExpenseModal, contains focus, and submits form", async () => {
@@ -193,7 +163,19 @@ describe("workspace feature components", () => {
     const handleClose = vi.fn();
 
     render(
-      <WorkspaceTimelineModal isOpen={true} planTitle="Summer Festival" onClose={handleClose} />
+      <WorkspaceTimelineModal
+        isOpen={true}
+        planTitle="Summer Festival"
+        timeline={[
+          {
+            phase: "Foundation",
+            due: "2027-04-15",
+            task: "Confirm venue access.",
+            owner: "Planner",
+          },
+        ]}
+        onClose={handleClose}
+      />
     );
     expect(screen.getByText("Run-of-Show Milestone Schedule")).toBeInTheDocument();
     expect(screen.getByLabelText("Close schedule")).toHaveFocus();
@@ -262,7 +244,9 @@ describe("workspace feature components", () => {
     expect(useUiStore.getState().isSearchOpen).toBe(true);
 
     fireEvent.click(screen.getByLabelText("View notifications"));
-    expect(useUiStore.getState().notification?.message).toContain("vendor certifications verified");
+    expect(useUiStore.getState().notification?.message).toContain(
+      "Notifications are not connected"
+    );
   });
 
   it("renders WorkspacePage with default plan when planId is not in store", () => {

@@ -33,13 +33,13 @@ describe("home feature components", () => {
     expect(screen.getByText("Sunny Jubilee")).toBeInTheDocument();
   });
 
-  it("renders HomePiecesOfWeekSection and handles reserve", () => {
+  it("renders planning inspiration and explains how to use it", () => {
     render(<HomePiecesOfWeekSection />);
-    expect(screen.getByText("Pieces of the Week")).toBeInTheDocument();
+    expect(screen.getByText("Example Celebration Details")).toBeInTheDocument();
 
-    const reserveBtn = screen.getByText("Reserve into Plan");
-    fireEvent.click(reserveBtn);
-    expect(useUiStore.getState().notification?.message).toContain("Flora Candlestick set added");
+    const promptButton = screen.getByText("Use as a Planning Prompt");
+    fireEvent.click(promptButton);
+    expect(useUiStore.getState().notification?.message).toContain("Use this inspiration");
   });
 
   it("renders HomeStudioPicksSection and toggles tabs", () => {
@@ -49,7 +49,7 @@ describe("home feature components", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText("Thoughtful Pieces for a Playful Event")).toBeInTheDocument();
+    expect(screen.getByText("Explore Practical Planning Views")).toBeInTheDocument();
     const budgetTab = screen.getByText("Slip Ledger");
     fireEvent.click(budgetTab);
     expect(budgetTab).toHaveClass("bg-cream-linen");

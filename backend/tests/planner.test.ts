@@ -25,7 +25,12 @@ describe("event planner", () => {
       (sum, item) => sum + item.amount,
       0,
     );
+    const percentTotal = plan.budgetAllocation.reduce(
+      (sum, item) => sum + item.percent,
+      0,
+    );
     expect(total).toBeCloseTo(brief.budget, 2);
+    expect(percentTotal).toBe(100);
     expect(plan.timeline).toHaveLength(6);
     expect(plan.vendorChecklist.join(" ")).toContain("allergen");
     expect(plan.aiMode).toBe("deterministic");

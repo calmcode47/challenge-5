@@ -93,7 +93,10 @@ export function VaultHero({ onDataChange }: VaultHeroProps): ReactElement {
             <MaterialIcon name="shield_lock" size={16} className="text-butter-sun" />
             <span>100% Client-Side Sovereign Vault</span>
           </div>
-          <h1 className="font-headline-xl text-headline-xl tracking-tight text-cream-linen font-bold">
+          <h1
+            tabIndex={-1}
+            className="font-headline-xl text-headline-xl tracking-tight text-cream-linen font-bold"
+          >
             My Saved Celebrations &amp; Clay Vault
           </h1>
           <p className="font-body-md text-body-md text-cream-linen/80 max-w-xl">

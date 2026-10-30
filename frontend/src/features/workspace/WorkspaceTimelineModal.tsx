@@ -1,18 +1,14 @@
 import { useRef, type ReactElement, type RefObject } from "react";
 import { MaterialIcon } from "../../components/common/MaterialIcon.js";
 import { useDialogAccessibility } from "../../components/common/useDialogAccessibility.js";
+import type { TimelineTask } from "../../state/persistence.js";
 
 /** Props for WorkspaceTimelineModal. */
 export interface WorkspaceTimelineModalProps {
   readonly isOpen: boolean;
   readonly planTitle: string;
+  readonly timeline?: readonly TimelineTask[];
   readonly onClose: () => void;
-}
-
-interface MilestoneItem {
-  time: string;
-  title: string;
-  cue: string;
 }
 
 function TimelineDialogHeader({
@@ -51,46 +47,31 @@ function TimelineDialogHeader({
   );
 }
 
-const MILESTONES: MilestoneItem[] = [
-  {
-    time: "14:00",
-    title: "Atelier Open & Musician Soundcheck",
-    cue: "Acoustic cello tuning, max 78dB",
-  },
-  {
-    time: "15:30",
-    title: "Guest Arrival & Elderflower Cordials",
-    cue: "Zero-proof bar open at stone barn",
-  },
-  {
-    time: "16:15",
-    title: "Ceremony & Handcrafted Vow Exchange",
-    cue: "Petal buds aisle procession",
-  },
-  {
-    time: "17:30",
-    title: "Golden Hour Studio Portraits",
-    cue: "Natural 35mm film session in orchard",
-  },
-  {
-    time: "18:45",
-    title: "Communal Banquet Dinner",
-    cue: "Gluten-isolated stoneware table course",
-  },
-  { time: "20:30", title: "Acoustic Folk Slow Dance", cue: "Subtle candlelit illumination" },
-];
-
-function MilestoneList(): ReactElement {
+function MilestoneList({ timeline }: { timeline?: readonly TimelineTask[] }): ReactElement {
+  if (!timeline?.length) {
+    return (
+      <p className="font-body-sm text-body-sm text-text-muted">
+        Create a plan to generate dated milestones.
+      </p>
+    );
+  }
   return (
     <div className="flex flex-col gap-space-sm divide-y divide-wine-accent/10">
-      {MILESTONES.map((m) => (
-        <div key={m.time} className="pt-space-xs first:pt-0 flex items-start gap-space-md">
+      {timeline.map((milestone) => (
+        <div
+          key={`${milestone.phase}-${milestone.due}`}
+          className="pt-space-xs first:pt-0 flex items-start gap-space-md"
+        >
           <span className="font-label-lg text-label-lg font-bold text-wine-accent w-16 shrink-0 mt-0.5">
-            {m.time}
+            {milestone.due}
           </span>
           <div className="flex flex-col">
-            <span className="font-title-md text-title-md text-wine-deep font-bold">{m.title}</span>
-            <span className="font-body-sm text-body-sm text-text-muted">{m.cue}</span>
+            <span className="font-title-md text-title-md text-wine-deep font-bold">
+              {milestone.phase}
+            </span>
+            <span className="font-body-sm text-body-sm text-text-muted">
+              {milestone.task} Owner: {milestone.owner}.
+            </span>
           </div>
         </div>
       ))}
@@ -104,6 +85,7 @@ function MilestoneList(): ReactElement {
 export function WorkspaceTimelineModal({
   isOpen,
   planTitle,
+  timeline,
   onClose,
 }: WorkspaceTimelineModalProps): ReactElement | null {
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -128,7 +110,7 @@ export function WorkspaceTimelineModal({
           onClose={onClose}
         />
 
-        <MilestoneList />
+        <MilestoneList timeline={timeline} />
 
         <div className="flex justify-end gap-space-sm pt-space-xs">
           <button

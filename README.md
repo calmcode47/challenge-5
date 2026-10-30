@@ -1,6 +1,10 @@
 # Occasio — Celebration & Event Planner
 
+[![Quality gates](https://github.com/calmcode47/challenge-5/actions/workflows/quality.yml/badge.svg)](https://github.com/calmcode47/challenge-5/actions/workflows/quality.yml)
+
 Occasio is a GenAI-assisted planning workspace for weddings, milestone birthdays, anniversaries, and community events. It creates a practical planning brief with a budget, date-based timeline, vendor safety checklist, personalized ideas, and risk flags, then lets the user keep working in the existing tactile planning workspace.
+
+**Live application:** [Vercel frontend](https://frontend-five-ruby-77.vercel.app) · [Render API](https://occasio-api.onrender.com/) · [API health](https://occasio-api.onrender.com/api/v1/health)
 
 ## Challenge alignment
 
@@ -54,21 +58,61 @@ cd frontend && npm run format:check && npm run lint && npm run typecheck && npm 
 
 GitHub Actions applies the same gates on `main` and pull requests. See [the architecture and safeguards](docs/ARCHITECTURE.md) for the security, resilience, and scale boundaries.
 
-## Evaluation-ready evidence
+## Example plan
 
-Occasio is designed for the celebration and event-planning vertical. The assistant uses the event type, date, guest count, budget, venue, access settings, and optional planning priorities to produce a structured, actionable brief. It never delegates budget arithmetic, time-critical milestones, or safety safeguards to a generative model.
+For a community supper on `2027-10-12` for `80` guests with a `$12,000` budget at `Riverside Pavilion`, plus step-free, allergen-aware, and weather-backup requirements, Occasio returns:
 
-- **Code quality:** strict TypeScript, small domain-focused modules, Prettier, ESLint, documented design boundaries, and CI checks on every change to `main`.
-- **Security and privacy:** schema-strict request and response boundaries; prompt-injection screening; Helmet, CORS allow-listing, request-size limits, request IDs, and rate limiting. Plans persist only in the visitor's browser; API briefs are not stored.
-- **Efficiency and resilience:** bounded LRU/TTL caching, a timeout and circuit breaker around optional Gemini enrichment, plus a fully deterministic fallback.
-- **Testing:** API integration, unit, resilience, state, client-contract, interaction, and accessibility tests with enforced coverage thresholds.
-- **Accessibility:** semantic controls, keyboard-operable radio groups and dialogs, focus containment/restoration, visible focus states, live notifications, and a concise privacy cue beside free-text planning priorities.
+- a six-envelope budget that preserves the full total, including protected contingency;
+- dated milestones that never start in the past, even for short-notice events;
+- vendor questions for insurance, access, allergens, and a weather pivot; and
+- risk flags prioritising food, safety, and core logistics when the per-guest budget is lean.
 
-### Submission checklist
+## API example
 
-Before submitting, confirm the repository is **public**, `main` is the only branch, and the repository stays below the 10 MB limit. This checkout currently has only `main`; `git count-objects -vH` reports the tracked Git database size. Do not commit `.env` files, build output, coverage reports, or dependencies—these are excluded by the repository ignore rules.
+`POST /api/v1/plans/generate`
 
-After a production deploy, use the plan wizard once with a real future date and verify the created plan appears in the workspace. The generated brief should show either a live AI-enriched plan or a clearly labelled resilient deterministic plan, never an unavailable or opaque result.
+```json
+{
+  "title": "Neighbourhood Harvest Supper",
+  "eventType": "community",
+  "date": "2027-10-12",
+  "guestCount": 80,
+  "budget": 12000,
+  "venue": "Riverside Pavilion",
+  "notes": "Welcome local makers and use low-waste serviceware.",
+  "accessibility": {
+    "stepFreeAccess": true,
+    "allergenAware": true,
+    "weatherBackup": true,
+    "lowSensoryOption": false
+  }
+}
+```
+
+```json
+{
+  "data": {
+    "aiMode": "deterministic",
+    "budgetAllocation": [
+      { "category": "Venue & rentals", "percent": 22, "amount": 2640 },
+      { "category": "Food & beverage", "percent": 32, "amount": 3840 }
+    ],
+    "timeline": [{ "phase": "Foundation", "due": "2027-04-15" }],
+    "riskFlags": [
+      "Hold at least 12% of the budget as contingency until final vendor balances are confirmed."
+    ]
+  }
+}
+```
+
+The complete response also includes vendor safeguards and personalized ideas. `aiMode` becomes `live` only when validated Gemini enrichment is available; all operational fields remain deterministic.
+
+## Repository and delivery facts
+
+- The repository is public and contains one branch: `main`.
+- The tracked Git database is below 1 MB, well under the 10 MB challenge limit.
+- CI runs formatting, linting, strict type checks, coverage-enforced tests, production builds, and production dependency audits for both applications.
+- The project is available under the [MIT License](LICENSE).
 
 ## Deployment
 

@@ -3,7 +3,7 @@ import { render, screen, fireEvent, act } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { App } from "./App.js";
 import { ErrorBoundary } from "./ErrorBoundary.js";
-import { LoadingFallback, routes } from "./router.js";
+import { LoadingFallback, router, routes } from "./router.js";
 import { useUiStore } from "../state/uiStore.js";
 
 const FlawedComponent = (): never => {
@@ -41,6 +41,22 @@ describe("App & ErrorBoundary", () => {
     });
     expect(useUiStore.getState().notification).toBeNull();
     vi.useRealTimers();
+  });
+
+  it("opens search with Control or Command K and announces an unknown route", async () => {
+    render(<App />);
+
+    fireEvent.keyDown(window, { key: "k", ctrlKey: true });
+    expect(useUiStore.getState().isSearchOpen).toBe(true);
+    useUiStore.getState().closeSearch();
+
+    fireEvent.keyDown(window, { key: "k", metaKey: true });
+    expect(useUiStore.getState().isSearchOpen).toBe(true);
+    useUiStore.getState().closeSearch();
+
+    await router.navigate("/route-that-does-not-exist");
+    expect(document.title).toBe("Page not found — Occasio");
+    await router.navigate("/");
   });
 
   it("catches rendering errors in ErrorBoundary and allows navigation", () => {

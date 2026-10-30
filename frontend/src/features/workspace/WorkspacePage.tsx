@@ -5,7 +5,6 @@ import { WorkspaceHeader } from "../../components/layout/WorkspaceHeader.js";
 import { SearchDialog } from "../../components/common/SearchDialog.js";
 import { WorkspaceBanner } from "./WorkspaceBanner.js";
 import { WorkspaceBudgetRatio } from "./WorkspaceBudgetRatio.js";
-import { WorkspacePillarsGrid } from "./WorkspacePillarsGrid.js";
 import { WorkspaceDualPassBlock } from "./WorkspaceDualPassBlock.js";
 import { WorkspaceSafeguardsBlock } from "./WorkspaceSafeguardsBlock.js";
 import { WorkspaceLogExpenseModal } from "./WorkspaceLogExpenseModal.js";
@@ -57,10 +56,9 @@ function WorkspaceMainContent(props: MainContentProps): ReactElement {
         onRunOfShow={props.onRunOfShow}
       />
       <WorkspaceBudgetRatio plan={props.plan} />
-      <WorkspacePillarsGrid />
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
         <WorkspaceDualPassBlock />
-        <WorkspaceSafeguardsBlock />
+        <WorkspaceSafeguardsBlock plan={props.plan} />
       </div>
     </div>
   );
@@ -101,6 +99,7 @@ function WorkspaceDialogs({
       <WorkspaceTimelineModal
         isOpen={isTimelineOpen}
         planTitle={plan.title}
+        timeline={plan.timeline}
         onClose={onCloseTimeline}
       />
     </>

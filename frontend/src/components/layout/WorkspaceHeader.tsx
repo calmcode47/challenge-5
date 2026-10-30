@@ -13,7 +13,10 @@ export function WorkspaceHeader({ planTitle }: WorkspaceHeaderProps): ReactEleme
   const { openSearch, showNotification } = useUiStore();
 
   const handleNotificationsClick = (): void => {
-    showNotification("3 vendor certifications verified and up to date.", "info");
+    showNotification(
+      "Notifications are not connected. Review the generated safeguards in this plan.",
+      "info"
+    );
   };
 
   return (
@@ -42,7 +45,7 @@ export function WorkspaceHeader({ planTitle }: WorkspaceHeaderProps): ReactEleme
         </button>
         <div
           className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-[0_2px_6px_rgba(92,29,36,0.12)] text-on-primary"
-          aria-label="Studio Director"
+          aria-hidden="true"
         >
           <MaterialIcon name="person" size={18} />
         </div>

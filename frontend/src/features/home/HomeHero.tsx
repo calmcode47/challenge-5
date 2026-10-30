@@ -10,12 +10,12 @@ function HeroTicker(): ReactElement {
       <div className="flex items-center gap-space-sm font-label-md text-label-md">
         <span className="w-2.5 h-2.5 rounded-full bg-butter-sun animate-pulse" />
         <span className="tracking-wide">
-          Atelier Open &middot; Handcrafting Spring &amp; Autumn Gatherings
+          Planning studio &middot; Build a practical celebration brief
         </span>
       </div>
       <div className="hidden md:flex items-center gap-space-lg font-label-sm text-label-sm text-on-surface-variant">
         <span>Clay &middot; Flora &middot; Acoustic Notes &middot; Intimate Feasts</span>
-        <span className="text-wine-accent font-bold">Studio Vault v2.4</span>
+        <span className="text-wine-accent font-bold">Private browser vault</span>
       </div>
     </div>
   );
@@ -48,7 +48,10 @@ function HeroCenterCopy(): ReactElement {
           Tangible Event Alchemy
         </span>
       </div>
-      <h1 className="font-headline-xl text-headline-xl text-cream-linen leading-none tracking-tight mb-space-sm">
+      <h1
+        tabIndex={-1}
+        className="font-headline-xl text-headline-xl text-cream-linen leading-none tracking-tight mb-space-sm"
+      >
         The Joy of{" "}
         <span className="italic font-normal font-headline-xl text-butter-sun">Celebrating</span>
       </h1>
@@ -75,13 +78,13 @@ function HeroCenterCopy(): ReactElement {
 
       <div className="mt-space-xl flex items-center gap-space-lg bg-wine-deep/50 px-space-lg py-space-xs rounded-full text-cream-linen font-label-md text-label-md">
         <span className="flex items-center gap-1">
-          <span className="text-butter-sun">&bull;</span> 340+ Artisanal Feasts
+          <span className="text-butter-sun">&bull;</span> Context-aware plans
         </span>
         <span className="flex items-center gap-1">
-          <span className="text-blush-petal">&bull;</span> 100% Tactile Layouts
+          <span className="text-blush-petal">&bull;</span> Accessible planning options
         </span>
         <span className="flex items-center gap-1">
-          <span className="text-sage-soft">&bull;</span> Zero Clutter
+          <span className="text-sage-soft">&bull;</span> Local plan storage
         </span>
       </div>
     </div>

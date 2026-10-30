@@ -13,7 +13,10 @@ const NotFoundPage = lazy(() => import("../features/not-found/NotFoundPage.js"))
 export function LoadingFallback(): ReactElement {
   return (
     <div className="min-h-screen bg-surface flex flex-col items-center justify-center text-wine-deep">
-      <span className="material-symbols-outlined text-4xl animate-spin text-wine-accent">
+      <span
+        className="material-symbols-outlined text-4xl animate-spin text-wine-accent"
+        aria-hidden="true"
+      >
         progress_activity
       </span>
       <span className="font-label-md text-label-md mt-3 tracking-wider uppercase font-bold text-secondary">

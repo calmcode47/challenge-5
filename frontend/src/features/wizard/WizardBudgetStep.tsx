@@ -1,6 +1,5 @@
 import type { ReactElement } from "react";
 import { MaterialIcon } from "../../components/common/MaterialIcon.js";
-import { BudgetEnvelopeBar } from "./BudgetEnvelopeBar.js";
 
 /** Props for WizardBudgetStep. */
 export interface WizardBudgetStepProps {
@@ -127,7 +126,7 @@ function BudgetMetricsInputs({
 }
 
 /**
- * Step 3 in Plan Wizard: Deterministic Budget Allocation with integer cents lock.
+ * Step 3 in Plan Wizard: deterministic budget inputs validated by the planning API.
  */
 export function WizardBudgetStep({
   budgetTotal,
@@ -152,8 +151,8 @@ export function WizardBudgetStep({
         </div>
       </div>
       <p className="font-body-md text-body-md text-on-surface-variant mb-space-lg">
-        Guaranteed financial accuracy: Total is strictly converted to canonical integer cents to
-        eliminate floating-point creep.
+        The planning API creates the final allocation from this budget and your event context. Your
+        workspace displays that server-validated allocation after the plan is created.
       </p>
 
       <BudgetMetricsInputs
@@ -162,7 +161,6 @@ export function WizardBudgetStep({
         onBudgetChange={onBudgetChange}
         onGuestCountChange={onGuestCountChange}
       />
-      <BudgetEnvelopeBar budgetTotal={budgetTotal} />
     </section>
   );
 }

@@ -16,14 +16,14 @@ function StudioPicksIntro({ activeTab, onTabChange }: SidebarProps): ReactElemen
         <MaterialIcon name="draw" size={26} />
       </div>
       <span className="font-label-sm text-label-sm text-secondary-fixed uppercase tracking-widest font-bold">
-        Studio Picks
+        Planning Workspace Preview
       </span>
       <h2 className="font-headline-lg text-headline-lg text-cream-linen mt-1 leading-tight font-bold">
-        Thoughtful Pieces for a Playful Event
+        Explore Practical Planning Views
       </h2>
       <p className="font-body-md text-body-md text-cream-surface/90 mt-space-sm mb-space-lg">
-        Tactile instruments that banish spreadsheet fatigue. Effortlessly adjust timing curves,
-        calculate clay plate allotments, and zone guests gently.
+        Illustrative previews of the timeline, budget, and guest-care views available in the
+        workspace. Values shown here are examples, not live event telemetry.
       </p>
 
       <div
@@ -78,12 +78,12 @@ function WaveVaseCard(): ReactElement {
           <circle cx="150" cy="50" fill="#98A886" r="6" />
         </svg>
         <div className="absolute bottom-2 px-space-xs py-0.5 bg-cream-linen text-wine-deep font-label-sm text-label-sm rounded-full font-bold">
-          0 Collisions
+          Example schedule view
         </div>
       </div>
       <div className="mt-space-md">
         <div className="flex items-center justify-between">
-          <h4 className="font-headline-sm text-headline-sm text-wine-deep font-bold">Wave Vase</h4>
+          <h3 className="font-headline-sm text-headline-sm text-wine-deep font-bold">Wave Vase</h3>
           <MaterialIcon name="waves" size={20} className="text-secondary" />
         </div>
         <p className="font-body-sm text-body-sm text-text-muted mt-1">
@@ -136,12 +136,12 @@ function BloomLampCard(): ReactElement {
           </div>
         </div>
         <div className="absolute bottom-2 px-space-xs py-0.5 bg-cream-linen text-wine-deep font-label-sm text-label-sm rounded-full font-bold">
-          10% Cushion Safe
+          Example contingency view
         </div>
       </div>
       <div className="mt-space-md">
         <div className="flex items-center justify-between">
-          <h4 className="font-headline-sm text-headline-sm text-wine-deep font-bold">Bloom Lamp</h4>
+          <h3 className="font-headline-sm text-headline-sm text-wine-deep font-bold">Bloom Lamp</h3>
           <MaterialIcon name="lightbulb" size={20} className="text-butter-sun" filled />
         </div>
         <p className="font-body-sm text-body-sm text-text-muted mt-1">
@@ -184,7 +184,7 @@ function ColorTrayCard(): ReactElement {
       </div>
       <div className="mt-space-md">
         <div className="flex items-center justify-between">
-          <h4 className="font-headline-sm text-headline-sm text-wine-deep font-bold">Color Tray</h4>
+          <h3 className="font-headline-sm text-headline-sm text-wine-deep font-bold">Color Tray</h3>
           <MaterialIcon name="palette" size={20} className="text-blush-deep" />
         </div>
         <p className="font-body-sm text-body-sm text-text-muted mt-1">
@@ -201,7 +201,7 @@ function ColorTrayCard(): ReactElement {
 }
 
 /**
- * Green sage block ("Studio Picks" Interactive Planner Engine).
+ * Green sage block linking to illustrative workspace previews.
  */
 export function HomeStudioPicksSection(): ReactElement {
   const [activeTab, setActiveTab] = useState<TabId>("timeline");

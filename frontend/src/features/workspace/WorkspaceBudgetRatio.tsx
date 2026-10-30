@@ -11,26 +11,12 @@ const BAR_COLORS = [
   "bg-primary-fixed-dim",
 ];
 
-const DEFAULT_SPLITS: readonly BudgetAllocation[] = [
-  { category: "Venue & rentals", amount: 0, percent: 26 },
-  { category: "Food & beverage", amount: 0, percent: 28 },
-  { category: "Design & florals", amount: 0, percent: 10 },
-  { category: "Photography & entertainment", amount: 0, percent: 12 },
-  { category: "Stationery & guest care", amount: 0, percent: 5 },
-  { category: "Contingency", amount: 0, percent: 19 },
-];
-
 function paletteColor(index: number): string {
   return BAR_COLORS[index % BAR_COLORS.length] ?? "bg-wine-accent";
 }
 
 function allocationFor(plan?: StoredPlan): readonly BudgetAllocation[] {
-  if (plan?.budgetAllocation?.length) return plan.budgetAllocation;
-  const budget = plan?.totalBudget ?? 24_000;
-  return DEFAULT_SPLITS.map((item) => ({
-    ...item,
-    amount: Math.round((budget * item.percent) / 100),
-  }));
+  return plan?.budgetAllocation ?? [];
 }
 
 function currency(value: number): string {
@@ -89,6 +75,14 @@ function AllocationVisual({
   allocations: readonly BudgetAllocation[];
   budget: number;
 }): ReactElement {
+  if (allocations.length === 0) {
+    return (
+      <p className="font-body-sm text-body-sm text-text-muted">
+        This saved sample does not contain a generated allocation. Create a plan to see its API
+        allocation here.
+      </p>
+    );
+  }
   return (
     <>
       <div

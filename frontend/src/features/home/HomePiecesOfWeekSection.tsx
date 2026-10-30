@@ -2,23 +2,23 @@ import type { ReactElement } from "react";
 import { MaterialIcon } from "../../components/common/MaterialIcon.js";
 import { useUiStore } from "../../state/uiStore.js";
 
-interface CuratedPiece {
+interface PlanningInspiration {
   icon: string;
   iconBg: string;
   iconColor: string;
   title: string;
   subtitle: string;
-  price: string;
+  planningNote: string;
 }
 
-const CURATED_PIECES: CuratedPiece[] = [
+const PLANNING_INSPIRATION: readonly PlanningInspiration[] = [
   {
     icon: "candle",
     iconBg: "bg-secondary-container",
     iconColor: "text-secondary",
     title: "Flora Saguaro Candlestick",
     subtitle: "Glazed stoneware · Sage & Cream",
-    price: "$72 / set",
+    planningNote: "Example styling cue",
   },
   {
     icon: "restaurant",
@@ -26,7 +26,7 @@ const CURATED_PIECES: CuratedPiece[] = [
     iconColor: "text-wine-deep",
     title: "Farm-to-Wheel Plating Spec",
     subtitle: "3-Course Local Heirloom Tasting",
-    price: "$84 / guest",
+    planningNote: "Example per-guest consideration",
   },
   {
     icon: "music_note",
@@ -34,11 +34,11 @@ const CURATED_PIECES: CuratedPiece[] = [
     iconColor: "text-wine-deep",
     title: "Acoustic Cello & Harp Duo",
     subtitle: "Curated twilight ceremony repertoire",
-    price: "$650 booking",
+    planningNote: "Example vendor category",
   },
 ];
 
-function PiecesList({ onReserve }: { onReserve: () => void }): ReactElement {
+function PiecesList({ onUseAsPrompt }: { onUseAsPrompt: () => void }): ReactElement {
   return (
     <div className="lg:col-span-5 flex flex-col">
       <div className="flex items-center gap-2 mb-space-xs">
@@ -46,19 +46,18 @@ function PiecesList({ onReserve }: { onReserve: () => void }): ReactElement {
           <MaterialIcon name="verified" size={18} />
         </span>
         <span className="font-label-lg text-label-lg text-wine-deep font-bold">
-          Curated Elements
+          Planning Inspiration
         </span>
       </div>
       <h2 className="font-headline-lg text-headline-lg text-wine-deep leading-tight font-bold">
-        Pieces of the Week
+        Example Celebration Details
       </h2>
       <p className="font-body-md text-body-md text-text-muted mt-space-xs mb-space-md">
-        Fresh handcrafted finds ready to insert into your celebration blueprint. From sculptural
-        candlestick trios to seasonal farm menus.
+        Illustrative starting points for a brief—not live inventory, prices, or vendor offers.
       </p>
 
       <div className="flex flex-col gap-space-sm">
-        {CURATED_PIECES.map((piece) => (
+        {PLANNING_INSPIRATION.map((piece) => (
           <div
             key={piece.title}
             className="flex items-center justify-between p-space-sm bg-cream-linen rounded-xl shadow-xs"
@@ -77,7 +76,7 @@ function PiecesList({ onReserve }: { onReserve: () => void }): ReactElement {
               </div>
             </div>
             <span className="font-label-lg text-label-lg text-wine-accent font-bold">
-              {piece.price}
+              {piece.planningNote}
             </span>
           </div>
         ))}
@@ -86,10 +85,10 @@ function PiecesList({ onReserve }: { onReserve: () => void }): ReactElement {
       <div className="mt-space-lg">
         <button
           type="button"
-          onClick={onReserve}
+          onClick={onUseAsPrompt}
           className="inline-flex items-center gap-space-xs px-space-lg py-space-sm rounded-full bg-wine-accent text-cream-linen font-label-lg text-label-lg hover:bg-wine-deep transition-all shadow-[0_4px_12px_rgba(122,40,50,0.18)] font-bold active:scale-95"
         >
-          <span>Reserve into Plan</span>
+          <span>Use as a Planning Prompt</span>
           <MaterialIcon name="bookmark_add" size={18} />
         </button>
       </div>
@@ -129,13 +128,16 @@ function PiecesGallery(): ReactElement {
 }
 
 /**
- * Pieces of the Week curated elements section with still life ceramic imagery.
+ * Illustrative planning prompts with still-life ceramic imagery.
  */
 export function HomePiecesOfWeekSection(): ReactElement {
   const { showNotification } = useUiStore();
 
-  const handleReserve = (): void => {
-    showNotification("Flora Candlestick set added to your active blueprint draft.", "success");
+  const handleUseAsPrompt = (): void => {
+    showNotification(
+      "Use this inspiration when you describe priorities in the plan wizard.",
+      "info"
+    );
   };
 
   return (
@@ -150,7 +152,7 @@ export function HomePiecesOfWeekSection(): ReactElement {
           aria-hidden="true"
         />
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center">
-          <PiecesList onReserve={handleReserve} />
+          <PiecesList onUseAsPrompt={handleUseAsPrompt} />
           <PiecesGallery />
         </div>
       </div>

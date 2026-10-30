@@ -18,7 +18,10 @@ export function NotFoundPage(): ReactElement {
         <div className="w-20 h-20 rounded-full bg-blush-petal/40 flex items-center justify-center text-wine-accent mb-space-md">
           <MaterialIcon name="explore_off" size={40} />
         </div>
-        <h1 className="font-headline-lg text-headline-lg text-wine-deep font-bold mb-space-xs">
+        <h1
+          tabIndex={-1}
+          className="font-headline-lg text-headline-lg text-wine-deep font-bold mb-space-xs"
+        >
           Uncharted Studio Room (404)
         </h1>
         <p className="font-body-md text-body-md text-text-muted max-w-md mb-space-lg">

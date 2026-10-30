@@ -151,7 +151,10 @@ function BannerTitleBlock({ title, venue }: { title: string; venue: string }): R
           Studio Milestone Edition
         </span>
       </div>
-      <h1 className="font-headline-xl text-headline-xl text-cream-linen tracking-tight font-bold">
+      <h1
+        tabIndex={-1}
+        className="font-headline-xl text-headline-xl text-cream-linen tracking-tight font-bold"
+      >
         {title}
       </h1>
       <svg
