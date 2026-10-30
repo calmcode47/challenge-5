@@ -17,8 +17,9 @@ Vite client ── POST /api/v1/plans/generate ──> Express API
 - The deterministic planner calculates budget allocations, dated milestones, vendor safeguards, and risk flags from the submitted event context. It is always available and makes the primary result explainable.
 - Gemini is optional enrichment only. Its response is schema-validated; a timeout, circuit breaker, and deterministic fallback keep the feature usable when the provider is unavailable.
 - The request boundary uses Zod validation, normalizes user notes, and rejects common attempts to treat user-provided text as system instructions.
-- HTTP safeguards include Helmet, explicit production CORS allow-listing, a 32 KB JSON limit, request IDs, rate limiting, and consistent structured error responses.
-- The in-memory cache and limiter are deliberately bounded. For a horizontally scaled production system, replace them with a shared cache and managed rate limiter.
+- The client independently validates the complete plan response before it reaches the workspace, so malformed or unexpected network data is not persisted or rendered.
+- HTTP safeguards include Helmet, a no-referrer policy, explicit production CORS allow-listing, a 32 KB JSON limit, request IDs, rate limiting, and consistent structured error responses.
+- The in-memory cache and limiter are deliberately bounded. The local vault also caps stored plans and accepts only the approved static image host during imports. For a horizontally scaled production system, replace the server-side cache and limiter with shared managed services.
 
 ## Verification
 

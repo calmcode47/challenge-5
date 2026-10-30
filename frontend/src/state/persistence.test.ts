@@ -11,6 +11,24 @@ import {
   type StoredPlan,
 } from "./persistence.js";
 
+function makePlan(id: string, updatedAt = "2026-10-31T00:00:00.000Z"): StoredPlan {
+  return {
+    id,
+    title: `Plan ${id}`,
+    date: "2027-11-20",
+    guestCount: 50,
+    completionRatio: 0.5,
+    totalBudget: 15000,
+    vertical: "community",
+    archetype: "Ceramic Loft",
+    venue: "Artisan Loft",
+    sensoryCount: 3,
+    tags: ["Test"],
+    description: "A validated test celebration plan.",
+    updatedAt,
+  };
+}
+
 describe("persistence store", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -137,6 +155,26 @@ describe("persistence store", () => {
   it("rejects structurally invalid imported vaults", () => {
     const count = importVaultJson(JSON.stringify({ celebrations: [{ id: "incomplete" }] }));
     expect(count).toBe(0);
+  });
+
+  it("rejects imported image URLs outside the approved static image host", () => {
+    const plan = {
+      ...loadPlans()[0],
+      id: "untrusted-image",
+      imageUrl: "https://tracker.invalid/pixel",
+    };
+    expect(importVaultJson(JSON.stringify({ celebrations: [plan] }))).toBe(0);
+  });
+
+  it("keeps vault storage bounded as plans are added", () => {
+    for (let index = 0; index < 105; index += 1) {
+      savePlan(makePlan(`bounded-${String(index)}`));
+    }
+
+    const plans = loadPlans();
+    expect(plans).toHaveLength(100);
+    expect(plans[0]?.id).toBe("bounded-104");
+    expect(plans.some((plan) => plan.id === "cl-001")).toBe(false);
   });
 
   it("computes storage usage information", () => {

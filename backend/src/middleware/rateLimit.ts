@@ -6,6 +6,13 @@ interface Bucket {
 }
 
 const buckets = new Map<string, Bucket>();
+const DEFAULT_MAX_BUCKETS = 10_000;
+
+function removeExpiredBuckets(now: number): void {
+  for (const [key, bucket] of buckets) {
+    if (bucket.resetAt <= now) buckets.delete(key);
+  }
+}
 
 /** Clears ephemeral limiter state between isolated test cases. */
 export function resetRateLimitBucketsForTesting(): void {
@@ -13,11 +20,26 @@ export function resetRateLimitBucketsForTesting(): void {
 }
 
 /** Lightweight per-IP guard suitable for a stateless demo service. Use a managed limiter in multi-instance production. */
-export function rateLimit(limit = 20, windowMs = 60_000) {
+export function rateLimit(
+  limit = 20,
+  windowMs = 60_000,
+  maxBuckets = DEFAULT_MAX_BUCKETS,
+) {
   return (request: Request, response: Response, next: NextFunction): void => {
     const now = Date.now();
     const key = `${request.ip ?? "unknown"}:${request.path}`;
     const previous = buckets.get(key);
+    if (!previous && buckets.size >= maxBuckets) removeExpiredBuckets(now);
+    if (!previous && buckets.size >= maxBuckets) {
+      response.status(429).json({
+        error: {
+          code: "RATE_LIMIT_CAPACITY",
+          message:
+            "The planner is receiving too many distinct requests. Please retry shortly.",
+        },
+      });
+      return;
+    }
     const bucket =
       !previous || previous.resetAt <= now
         ? { count: 0, resetAt: now + windowMs }

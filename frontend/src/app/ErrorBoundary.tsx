@@ -1,4 +1,4 @@
-import { Component, type ErrorInfo, type ReactNode } from "react";
+import { Component, type ReactNode } from "react";
 
 interface Props {
   readonly children: ReactNode;
@@ -6,7 +6,6 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  error?: Error;
 }
 
 /**
@@ -17,14 +16,8 @@ export class ErrorBoundary extends Component<Props, State> {
     hasError: false,
   };
 
-  public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
-  }
-
-  public override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    if (error.name && errorInfo.componentStack) {
-      // Diagnostic check without side effects
-    }
+  public static getDerivedStateFromError(): State {
+    return { hasError: true };
   }
 
   public override render(): ReactNode {

@@ -4,36 +4,43 @@ import { apiBaseUrl } from "./apiConfig.js";
 
 const eventTypeSchema = z.enum(["wedding", "milestone", "community", "anniversary"]);
 
-const allocationSchema = z.object({
-  category: z.string().min(1),
-  amount: z.number().nonnegative(),
-  percent: z.number().nonnegative(),
-});
+const allocationSchema = z
+  .object({
+    category: z.string().trim().min(1).max(80),
+    amount: z.number().nonnegative().max(5_000_000),
+    percent: z.number().min(0).max(100),
+  })
+  .strict();
 
-const timelineTaskSchema = z.object({
-  phase: z.string().min(1),
-  due: z.string(),
-  task: z.string().min(1),
-  owner: z.string().min(1),
-});
+const timelineTaskSchema = z
+  .object({
+    phase: z.string().trim().min(1).max(80),
+    due: z.iso.date(),
+    task: z.string().trim().min(1).max(300),
+    owner: z.string().trim().min(1).max(80),
+  })
+  .strict();
 
-const generatedPlanSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  eventType: eventTypeSchema,
-  date: z.string(),
-  guestCount: z.number(),
-  budget: z.number(),
-  venue: z.string(),
-  budgetAllocation: z.array(allocationSchema).min(1),
-  timeline: z.array(timelineTaskSchema).min(1),
-  personalizedIdeas: z.array(z.string()),
-  vendorChecklist: z.array(z.string()),
-  riskFlags: z.array(z.string()),
-  aiMode: z.enum(["live", "deterministic"]),
-});
+const generatedPlanSchema = z
+  .object({
+    id: z.string().trim().min(1).max(80),
+    title: z.string().trim().min(1).max(120),
+    eventType: eventTypeSchema,
+    date: z.iso.date(),
+    guestCount: z.number().int().min(2).max(5000),
+    budget: z.number().positive().max(5_000_000),
+    venue: z.string().trim().min(1).max(120),
+    budgetAllocation: z.array(allocationSchema).min(1).max(12),
+    timeline: z.array(timelineTaskSchema).min(1).max(12),
+    personalizedIdeas: z.array(z.string().trim().min(1).max(220)).max(4),
+    vendorChecklist: z.array(z.string().trim().min(1).max(220)).max(16),
+    riskFlags: z.array(z.string().trim().min(1).max(220)).max(12),
+    aiMode: z.enum(["live", "deterministic"]),
+    generatedAt: z.iso.datetime(),
+  })
+  .strict();
 
-const apiResponseSchema = z.object({ data: generatedPlanSchema });
+const apiResponseSchema = z.object({ data: generatedPlanSchema }).strict();
 
 export type GeneratedPlan = z.infer<typeof generatedPlanSchema>;
 

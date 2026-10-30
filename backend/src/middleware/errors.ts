@@ -18,6 +18,17 @@ export const errorHandler: ErrorRequestHandler = (
     return;
   }
   const requestId = response.getHeader("X-Request-Id");
+  if (error instanceof Error && error.name === "DisallowedOriginError") {
+    response.status(403).json({
+      error: {
+        code: "ORIGIN_NOT_ALLOWED",
+        message:
+          "This browser origin is not permitted to use the planning API.",
+        requestId,
+      },
+    });
+    return;
+  }
   if (error instanceof ZodError) {
     response.status(400).json({
       error: {

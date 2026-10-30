@@ -7,6 +7,13 @@ import { generatePlan } from "./controllers/planController.js";
 import { errorHandler, notFound } from "./middleware/errors.js";
 import { rateLimit } from "./middleware/rateLimit.js";
 
+class DisallowedOriginError extends Error {
+  public constructor() {
+    super("Origin is not allowed");
+    this.name = "DisallowedOriginError";
+  }
+}
+
 const requestId: RequestHandler = (_request, response, next) => {
   response.setHeader("X-Request-Id", randomUUID());
   next();
@@ -23,7 +30,7 @@ function corsOptions(): cors.CorsOptions {
         callback(null, true);
         return;
       }
-      callback(new Error("Origin is not allowed"));
+      callback(new DisallowedOriginError());
     },
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "X-Request-Id"],
@@ -37,7 +44,12 @@ export function createApp(): express.Express {
   app.disable("x-powered-by");
   app.set("trust proxy", 1);
   app.use(requestId);
-  app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+      referrerPolicy: { policy: "no-referrer" },
+    }),
+  );
   app.use(cors(corsOptions()));
   app.use(express.json({ limit: "32kb", strict: true }));
   app.get("/health", (_request, response) =>

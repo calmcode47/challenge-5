@@ -41,6 +41,16 @@ export interface PlanExpense {
 }
 
 const STORAGE_KEY = "soft_clay_vault_plans_v1";
+const MAX_STORED_PLANS = 100;
+
+function isApprovedImageUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && url.hostname === "lh3.googleusercontent.com";
+  } catch {
+    return false;
+  }
+}
 
 const storedPlanSchema = z.object({
   id: z.string().trim().min(1).max(80),
@@ -80,12 +90,12 @@ const storedPlanSchema = z.object({
     )
     .max(100)
     .optional(),
-  imageUrl: z.url().optional(),
+  imageUrl: z.url().refine(isApprovedImageUrl).optional(),
   updatedAt: z.iso.datetime(),
 });
 
 const vaultSchema = z.object({
-  celebrations: z.array(storedPlanSchema).min(1).max(100),
+  celebrations: z.array(storedPlanSchema).min(1).max(MAX_STORED_PLANS),
 });
 
 const INITIAL_PLANS: readonly StoredPlan[] = [
@@ -174,7 +184,7 @@ export function loadPlans(): StoredPlan[] {
     const parsed = z
       .array(storedPlanSchema)
       .min(1)
-      .max(100)
+      .max(MAX_STORED_PLANS)
       .safeParse(JSON.parse(raw) as unknown);
     if (parsed.success) return parsed.data;
     writePlans(INITIAL_PLANS);
@@ -206,7 +216,7 @@ export function savePlan(plan: StoredPlan): void {
   } else {
     updated.unshift(validated.data);
   }
-  writePlans(updated);
+  writePlans(updated.slice(0, MAX_STORED_PLANS));
 }
 
 /**
@@ -268,7 +278,9 @@ export function importVaultJson(rawJson: string): number {
     const map = new Map<string, StoredPlan>();
     for (const p of existing) map.set(p.id, p);
     for (const p of parsed.data.celebrations) map.set(p.id, p);
-    const merged = Array.from(map.values());
+    const merged = Array.from(map.values())
+      .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+      .slice(0, MAX_STORED_PLANS);
     writePlans(merged);
     return parsed.data.celebrations.length;
   } catch {

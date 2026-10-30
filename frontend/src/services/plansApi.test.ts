@@ -40,6 +40,7 @@ const generated = {
     vendorChecklist: ["Verify liability insurance."],
     riskFlags: ["Keep contingency available."],
     aiMode: "deterministic",
+    generatedAt: "2026-10-31T00:00:00.000Z",
   },
 };
 
@@ -74,5 +75,20 @@ describe("plans API", () => {
       "/api/v1/health",
       expect.objectContaining({ credentials: "omit", method: "GET" })
     );
+  });
+
+  it("rejects a malformed or unexpected API payload before it reaches the workspace", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ...generated,
+          data: { ...generated.data, generatedAt: "not-an-iso-timestamp" },
+        }),
+        { status: 201 }
+      )
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(generatePlan(form)).rejects.toThrow();
   });
 });
